@@ -1,7 +1,6 @@
 package gopp
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -43,7 +42,6 @@ func (this *xchan) PDone() {
 		close(this.pdchan)
 		close(this.cdchan)
 		close(this.uchan)
-		fmt.Println("done....")
 		gwg.Done()
 	}()
 }

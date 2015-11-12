@@ -10,23 +10,30 @@ import (
 // go test ./...
 func TestXChan(t *testing.T) {
 	fmt.Println("abc")
-	xchan_wait()
-
 	defer xchan_wait()
-	xch := NewXChan(2)
-	xch.Write(123)
-	xch.Write("456")
-	xch.PDone()
-	xch.PDone()
 
-	v2 := xch.Read()
-	fmt.Println(v2, reflect.TypeOf(v2))
+	afun := func() {
+		xch := NewXChan(2)
+		xch.Write(123)
+		xch.Write("456")
+		xch.PDone()
+		xch.PDone()
 
-	v3 := xch.Read()
-	fmt.Println(v3, reflect.TypeOf(v3))
+		v2 := xch.Read()
+		fmt.Println(v2, reflect.TypeOf(v2))
 
-	xch.CDone()
-	xch.CDone()
+		v3 := xch.Read()
+		fmt.Println(v3, reflect.TypeOf(v3))
+
+		xch.CDone()
+		xch.CDone()
+	}
+
+	go afun()
+	go afun()
+	go afun()
+
+	fmt.Println("before defer...")
 	// xchan_wait()
 }
 
