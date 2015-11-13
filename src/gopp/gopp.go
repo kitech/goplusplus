@@ -1,0 +1,4 @@
+package gopp
+
+func Keep() {
+}
