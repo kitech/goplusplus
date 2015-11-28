@@ -3,6 +3,7 @@ package gopp
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -60,4 +61,20 @@ func Test_MapArrayInt_1(t *testing.T) {
 	s1 := "abcdefg"
 	mapped7 := MapAny(f_shifta, s1)
 	fmt.Println(mapped7)
+}
+
+func Test_Maybe_1(t *testing.T) {
+	s := "hello,abc"
+	ns := MaybeFrom(s).Map(Must(NewFunc(strings.ToUpper))).
+		Map(Must(NewFunc(strings.ToLower))).
+		Map(Must(NewFunc(strings.Title)))
+	fmt.Println(ns.Value)
+}
+
+func Test_Maybe_2(t *testing.T) {
+	s := "hello,abc"
+	ns := MaybeFrom(s).Do(strings.ToUpper,
+		strings.ToLower, strings.Title)
+
+	fmt.Println(ns.Value)
 }

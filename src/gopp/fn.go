@@ -61,6 +61,13 @@ func Must(f *Func, err error) *Func {
 	return f
 }
 
+func Must2(v interface{}, args ...interface{}) interface{} {
+	if v == nil {
+		panic(args)
+	}
+	return v
+}
+
 // func(int) bool
 func MapArrayAny(f *Func, vs []interface{}) []interface{} {
 	if len(vs) == 0 {
@@ -96,7 +103,8 @@ func MapAny(f *Func, vs interface{}) interface{} {
 		vvs := reflect.ValueOf(vs)
 		mstr := ""
 
-		uint8_type := reflect.TypeOf(*new(uint8))
+		uint8_type := reflect.TypeOf(uint8(1))
+		uint8_type = Uint8Ty
 		for i := 0; i < vvs.Len(); i++ {
 			mv := f.Call(vvs.Index(i).Interface())
 			mvt := reflect.TypeOf(mv)
@@ -187,4 +195,38 @@ func MapArrayInt(f func(v int) bool, vs []int) []bool {
 	}
 
 	return append(MapArrayInt(f, vs[:len(vs)-1]), f(vs[len(vs)-1]))
+}
+
+/////////
+type Maybe struct {
+	Value interface{}
+}
+
+func MaybeFrom(v interface{}) Maybe {
+	return Maybe{v}
+}
+
+func (self Maybe) Valid() bool {
+	return self.Value == nil
+}
+
+func (self Maybe) Map(f *Func) Maybe {
+	if self.Value == nil {
+		return MaybeFrom(nil)
+	}
+
+	return MaybeFrom(f.Call(self.Value))
+}
+
+func (self Maybe) Do(fs ...interface{}) Maybe {
+	if len(fs) == 0 {
+		return self
+	}
+
+	f, err := NewFunc(fs[0])
+	if err != nil {
+		return MaybeFrom(nil)
+	}
+
+	return self.Map(f).Do(fs[1:]...)
 }
