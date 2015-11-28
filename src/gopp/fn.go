@@ -385,3 +385,8 @@ func Compose(f, g interface{}) (*Func, error) {
 		func(x interface{}) interface{} { return fg.Call(ff.Call(x)) },
 	}, nil
 }
+
+///// 常用函数原型
+type FilterFunc func(interface{}) bool
+type MapFunc func(interface{}) interface{}
+type FolderFunc func(interface{}, interface{}) interface{}
