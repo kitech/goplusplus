@@ -80,7 +80,7 @@ func Test_Maybe_2(t *testing.T) {
 }
 
 func Test_Many_1(t *testing.T) {
-	m := ManyFrom("hello world", "good byte", "foo bar")
+	m := ManyFrom("hello world 123", "good byte 456", "foo bar 789")
 	fmt.Printf("%#v, %v\n", m, m.Count())
 	toUpper := Must(NewFunc(strings.ToUpper))
 	fields := Must(NewFunc(strings.Fields))

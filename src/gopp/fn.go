@@ -5,6 +5,7 @@ import (
 	"fmt"
 	// "log"
 	"reflect"
+	// "sort"
 )
 
 // from functional_go.pdf
@@ -260,35 +261,12 @@ func (this *Many) Map(f *Func) *Many {
 
 	var res *Many = nil
 	if this.Tail != nil {
-		fmt.Printf("%#v\n", this.Tail)
+		// fmt.Printf("%#v\n", this.Tail)
 		res = this.Tail.Map(f)
 	}
 
-	ifelse := func(q bool, tv interface{}, fv interface{}) interface{} {
-		if q {
-			return tv
-		} else {
-			return fv
-		}
-	}
-
-	toSlice := func(v interface{}) []interface{} {
-		vt := reflect.TypeOf(v)
-		if vt.Kind() == reflect.Slice {
-			res := []interface{}{}
-			vv := reflect.ValueOf(v)
-			for i := 0; i < vv.Len(); i++ {
-				res = append(res, vv.Index(i).Interface())
-			}
-			return res
-		} else {
-			return []interface{}{v}
-		}
-	}
-
-	// TODO???
-	v := ifelse(this.Head != nil, f.Call(this.Head), nil)
-	v2 := toSlice(v)
+	v := IfElse(this.Head != nil, f.Call(this.Head), nil)
+	v2 := ToSlice(v, true)
 	for _, iv := range v2 {
 		res = &Many{iv, res}
 	}
