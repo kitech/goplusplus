@@ -90,3 +90,12 @@ func Test_Many_1(t *testing.T) {
 	fres := res.Flat()
 	fmt.Println("fres222", fres, len(fres))
 }
+
+func Test_Compose_1(t *testing.T) {
+	f1 := Must(Compose(strings.ToUpper, strings.ToLower))
+	Assert(f1)
+	toUpper := MustFunc(strings.ToUpper)
+	fields := MustFunc(strings.Fields)
+	f2 := Must(ComposeFunc(toUpper, fields))
+	Assert(f2)
+}

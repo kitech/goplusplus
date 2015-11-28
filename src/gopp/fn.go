@@ -55,18 +55,31 @@ func NewFunc(f interface{}) (*Func, error) {
 	}, nil
 }
 
+// must的含义，断定是某个有效的值，如果不是程序报错退出。
+// @param f raw function, like strings.ToUpper
+func MustFunc(f interface{}, args ...interface{}) *Func {
+	if f == nil {
+		panic(args)
+	}
+
+	tv := reflect.TypeOf(f)
+	if tv.Kind() != reflect.Func {
+		panic(args)
+	}
+
+	fv, err := NewFunc(f)
+	if err != nil || fv == nil {
+		panic(err)
+	}
+
+	return fv
+}
+
 func Must(f *Func, err error) *Func {
 	if f == nil {
 		panic(err)
 	}
 	return f
-}
-
-func Must2(v interface{}, args ...interface{}) interface{} {
-	if v == nil {
-		panic(args)
-	}
-	return v
 }
 
 // func(int) bool
@@ -203,6 +216,10 @@ type Maybe struct {
 	Value interface{}
 }
 
+func NewMaybe(v interface{}) Maybe {
+	return Maybe{v}
+}
+
 func MaybeFrom(v interface{}) Maybe {
 	return Maybe{v}
 }
@@ -216,7 +233,13 @@ func (self Maybe) Map(f *Func) Maybe {
 		return MaybeFrom(nil)
 	}
 
-	return MaybeFrom(f.Call(self.Value))
+	res := f.Call(self.Value)
+	vr := reflect.ValueOf(res)
+	if vr.Kind() == reflect.Ptr && vr.IsNil() {
+		return Maybe{}
+	}
+
+	return MaybeFrom(res)
 }
 
 func (self Maybe) Do(fs ...interface{}) Maybe {
@@ -236,6 +259,10 @@ func (self Maybe) Do(fs ...interface{}) Maybe {
 type Many struct {
 	Head interface{}
 	Tail *Many
+}
+
+func NewMany(args ...interface{}) *Many {
+	return ManyFrom(args...)
 }
 
 func ManyFrom(args ...interface{}) *Many {
@@ -274,6 +301,28 @@ func (this *Many) Map(f *Func) *Many {
 	return res
 }
 
+func (this *Many) Do(fs ...interface{}) *Many {
+	if len(fs) == 0 {
+		return this
+	}
+
+	// f := MustFunc(fs[0])
+	f, err := NewFunc(fs[0])
+
+	// 这种应该更合理点吧
+	// 相当于忽略所有的执行结果，一个出错，不在给出任何结果，方便执行完成后的检查
+	if err != nil {
+		return NewMany()
+	}
+
+	// 相当于忽略本次执行结果，并继续执行。
+	if err != nil {
+		// return this
+	}
+
+	return this.Map(f).Do(fs[1:]...)
+}
+
 func (this *Many) Count() int {
 	c := 0
 	if this.Head != nil {
@@ -292,4 +341,47 @@ func (this *Many) Flat() []interface{} {
 	}
 
 	return append([]interface{}{this.Head}, this.Tail.Flat()...)
+}
+
+///函数组合
+func ComposeFunc(f, g *Func) (*Func, error) {
+	// tf := reflect.TypeOf(f)
+	// tg := reflect.TypeOf(g)
+
+	if f.out != g.in {
+		return nil, fmt.Errorf("Can't compose %v != %v\n", f.out, g.in)
+	}
+
+	return &Func{
+		f.in, g.out,
+		func(x interface{}) interface{} { return g.Call(f.Call(x)) },
+	}, nil
+}
+
+func Compose(f, g interface{}) (*Func, error) {
+	tf := reflect.TypeOf(f)
+	tg := reflect.TypeOf(g)
+
+	if tf.Kind() != reflect.Func || tg.Kind() != reflect.Func {
+		return nil, fmt.Errorf("all parameters must be function type.")
+	}
+
+	if tf.Out(0) != tg.In(0) {
+		return nil, fmt.Errorf("Can't compose %v != %v\n", tf.Out(0), tg.In(0))
+	}
+
+	ff, err := NewFunc(f)
+	if err != nil {
+		return nil, err
+	}
+
+	fg, err := NewFunc(g)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Func{
+		tf.In(0), tg.Out(0),
+		func(x interface{}) interface{} { return fg.Call(ff.Call(x)) },
+	}, nil
 }
