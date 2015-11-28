@@ -78,3 +78,15 @@ func Test_Maybe_2(t *testing.T) {
 
 	fmt.Println(ns.Value)
 }
+
+func Test_Many_1(t *testing.T) {
+	m := ManyFrom("hello world", "good byte", "foo bar")
+	fmt.Printf("%#v, %v\n", m, m.Count())
+	toUpper := Must(NewFunc(strings.ToUpper))
+	fields := Must(NewFunc(strings.Fields))
+	res := m.Map(toUpper).Map(fields)
+	fmt.Println("res111", res, res.Count())
+
+	fres := res.Flat()
+	fmt.Println("fres222", fres, len(fres))
+}

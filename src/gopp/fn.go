@@ -230,3 +230,88 @@ func (self Maybe) Do(fs ...interface{}) Maybe {
 
 	return self.Map(f).Do(fs[1:]...)
 }
+
+/////////
+type Many struct {
+	Head interface{}
+	Tail *Many
+}
+
+func ManyFrom(args ...interface{}) *Many {
+	if len(args) == 0 {
+		return &Many{}
+	}
+
+	if len(args) == 1 {
+		return &Many{args[0], ManyFrom()}
+	}
+
+	return &Many{args[0], ManyFrom(args[1:]...)}
+}
+
+func (this *Many) Map(f *Func) *Many {
+	if this == nil {
+		return nil
+	}
+
+	if this.Head == nil {
+		return ManyFrom()
+	}
+
+	var res *Many = nil
+	if this.Tail != nil {
+		fmt.Printf("%#v\n", this.Tail)
+		res = this.Tail.Map(f)
+	}
+
+	ifelse := func(q bool, tv interface{}, fv interface{}) interface{} {
+		if q {
+			return tv
+		} else {
+			return fv
+		}
+	}
+
+	toSlice := func(v interface{}) []interface{} {
+		vt := reflect.TypeOf(v)
+		if vt.Kind() == reflect.Slice {
+			res := []interface{}{}
+			vv := reflect.ValueOf(v)
+			for i := 0; i < vv.Len(); i++ {
+				res = append(res, vv.Index(i).Interface())
+			}
+			return res
+		} else {
+			return []interface{}{v}
+		}
+	}
+
+	// TODO???
+	v := ifelse(this.Head != nil, f.Call(this.Head), nil)
+	v2 := toSlice(v)
+	for _, iv := range v2 {
+		res = &Many{iv, res}
+	}
+
+	return res
+}
+
+func (this *Many) Count() int {
+	c := 0
+	if this.Head != nil {
+		c += 1
+	}
+
+	if this.Tail == nil {
+		return c
+	}
+	return c + this.Tail.Count()
+}
+
+func (this *Many) Flat() []interface{} {
+	if this.Head == nil {
+		return []interface{}{}
+	}
+
+	return append([]interface{}{this.Head}, this.Tail.Flat()...)
+}
