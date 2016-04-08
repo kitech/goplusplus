@@ -4,6 +4,8 @@ import (
 	"reflect"
 )
 
+type Any interface{}
+
 // maybe can use Once for lazy
 var Int8Ty = reflect.TypeOf(int8(1))
 var Uint8Ty = reflect.TypeOf(uint8(1))
