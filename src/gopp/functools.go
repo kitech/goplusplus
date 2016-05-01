@@ -1,9 +1,25 @@
 package gopp
 
+import (
+	"reflect"
+)
+
 type FuncTools struct {
 	first     chan interface{}
 	last      chan interface{}
 	tmpchains []chan interface{}
+}
+
+type Func struct {
+	in  reflect.Type
+	out reflect.Type
+}
+
+func Abc(T1 reflect.Type, T2 reflect.Type) {
+	var n T1
+	var a = 1
+	var t3 reflect.Type = reflect.TypeOf(a)
+	var b t33
 }
 
 func NewFuncTools(srcpeer chan interface{}) *FuncTools {
