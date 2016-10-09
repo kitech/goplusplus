@@ -17,6 +17,14 @@ func IfElse(q bool, tv interface{}, fv interface{}) interface{} {
 	}
 }
 
+func IfElseInt(q bool, tv int, fv int) int {
+	return IfElse(q, tv, fv).(int)
+}
+
+func IfElseStr(q bool, tv string, fv string) string {
+	return IfElse(q, tv, fv).(string)
+}
+
 // 把一个值转换为数组切片
 // 如果本身即为数组切片，则显式转换为数组类型
 // 如果本身不是数组切片，则把该值作为返回数组切片的第一个值。
@@ -43,6 +51,20 @@ func Assert(v interface{}) {
 	tv := reflect.TypeOf(v)
 	if tv.Kind() == reflect.Bool && v.(bool) == false {
 		panic(v)
+	}
+
+	vv := reflect.ValueOf(v)
+	switch tv.Kind() {
+	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Uint8, reflect.Int8:
+		if vv.Int() == 0 {
+			panic(v)
+		}
+	case reflect.String:
+		if v.(string) == "" {
+			panic(v)
+		}
 	}
 }
 

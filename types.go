@@ -4,12 +4,14 @@ import (
 	"reflect"
 )
 
+// TODO how add methods for Any type
 type Any interface{}
 
 // maybe can use Once for lazy
 var Int8Ty = reflect.TypeOf(int8(1))
 var Uint8Ty = reflect.TypeOf(uint8(1))
 var IntTy = reflect.TypeOf(int(1))
+var UintTy = reflect.TypeOf(uint(1))
 var Int32Ty = reflect.TypeOf(int32(1))
 var Uint32Ty = reflect.TypeOf(uint32(1))
 var Int64Ty = reflect.TypeOf(int64(1))
@@ -42,4 +44,8 @@ func IsFunc(v interface{}) bool {
 
 func IsStruct(v interface{}) bool {
 	return reflect.TypeOf(v).Kind() == reflect.Struct
+}
+
+func IsPtr(v interface{}) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Ptr
 }

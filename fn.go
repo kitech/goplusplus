@@ -13,10 +13,15 @@ type Func struct {
 	in  reflect.Type
 	out reflect.Type
 	f   func(interface{}) interface{}
+	f2  func(interface{}, interface{}) interface{}
 }
 
 func (self Func) Call(v interface{}) interface{} {
 	return self.f(v)
+}
+
+func (self Func) Call2(v interface{}, v2 interface{}) interface{} {
+	return self.f2(v, v2)
 }
 
 func NewFunc(f interface{}) (*Func, error) {
@@ -141,6 +146,70 @@ func MapAny(f *Func, vs interface{}) interface{} {
 	default:
 		fmt.Println("not impled: " + tvs.Kind().String())
 	}
+	return nil
+}
+
+// reduce
+// func(elem interface{}, iv interface{}) interface{}
+func ReduceArrayAny(f *Func, vs []interface{}, iv interface{}) interface{} {
+	if len(vs) == 0 {
+		return nil
+	}
+	return ReduceArrayAny(f, vs[:len(vs)-1], f.Call2(vs[len(vs)-1], iv))
+}
+
+// func(elem interface{}, iv interface{}) interface{}
+func ReduceMapAny(f *Func, vs map[interface{}]interface{}) map[interface{}]interface{} {
+	mv := make(map[interface{}]interface{}, 0)
+	for k, v := range vs {
+		mv[k] = f.Call(v)
+	}
+	return mv
+}
+
+func ReduceAny(f *Func, vs interface{}, iv interface{}) interface{} {
+	tvs := reflect.TypeOf(vs)
+	switch tvs.Kind() {
+	case reflect.Map:
+		tmp := MapToAnyMap(vs)
+		return MapMapAny(f, tmp)
+	case reflect.Array:
+		tmp := ArrayToAnyArray(vs)
+		return MapArrayAny(f, tmp)
+		// tmp2 := ToAny(vs)
+		// return MapAny(f, tmp2)
+	case reflect.String:
+		if f.out.Kind() != reflect.Uint8 {
+			// panic("must retrun uint8")
+		}
+		vvs := reflect.ValueOf(vs)
+		mstr := ""
+
+		uint8_type := reflect.TypeOf(uint8(1))
+		uint8_type = Uint8Ty
+		for i := 0; i < vvs.Len(); i++ {
+			mv := f.Call(vvs.Index(i).Interface())
+			mvt := reflect.TypeOf(mv)
+			if mvt != uint8_type {
+				mvv := reflect.ValueOf(mv).Convert(uint8_type).Interface()
+				mstr += string(mvv.(byte))
+			} else {
+				mstr += string(mv.(byte))
+			}
+		}
+		return mstr
+	case reflect.Slice:
+		tmp := reflect.ValueOf(vs)
+		res := make([]interface{}, 0)
+		for i := 0; i < tmp.Len(); i++ {
+			nv := f.Call(tmp.Index(i).Interface())
+			res = append(res, nv)
+		}
+		return res
+	default:
+		fmt.Println("not impled: " + tvs.Kind().String())
+	}
+
 	return nil
 }
 
@@ -355,6 +424,8 @@ func ComposeFunc(f, g *Func) (*Func, error) {
 	return &Func{
 		f.in, g.out,
 		func(x interface{}) interface{} { return g.Call(f.Call(x)) },
+		// func(x interface{}, y interface{}) interface{} { return g.Call2(f.Call2(x, y), f.Call2(y, x)) },
+		nil,
 	}, nil
 }
 
@@ -383,6 +454,8 @@ func Compose(f, g interface{}) (*Func, error) {
 	return &Func{
 		tf.In(0), tg.Out(0),
 		func(x interface{}) interface{} { return fg.Call(ff.Call(x)) },
+		// func(x interface{}, y interface{}) interface{} { return fg.Call2(ff.Call2(x, y), ff.Call2(y, x)) },
+		nil,
 	}, nil
 }
 
@@ -390,3 +463,4 @@ func Compose(f, g interface{}) (*Func, error) {
 type FilterFunc func(interface{}) bool
 type MapFunc func(interface{}) interface{}
 type FolderFunc func(interface{}, interface{}) interface{}
+type ReduceFunc FolderFunc
