@@ -115,3 +115,27 @@ func FileExist(fname string) bool {
 	}
 	return true
 }
+
+func Iface2Value(args []interface{}) []reflect.Value {
+	if args == nil {
+		return nil
+	}
+
+	vals := make([]reflect.Value, 0)
+	for _, arg := range args {
+		vals = append(vals, reflect.ValueOf(arg))
+	}
+	return vals
+}
+
+func Value2Iface(vals []reflect.Value) []interface{} {
+	if vals == nil {
+		return nil
+	}
+
+	rets := make([]interface{}, 0)
+	for _, val := range vals {
+		rets = append(rets, val.Interface())
+	}
+	return rets
+}
