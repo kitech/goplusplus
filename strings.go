@@ -3,6 +3,7 @@ package gopp
 import (
 	"bytes"
 	"strings"
+	"unicode"
 )
 
 // 安全提取子字符串。支持负值，表示从后面
@@ -70,7 +71,20 @@ func Title(s string) string {
 	return s
 }
 
-func IsNumber(s string) bool {
+func IsNumberic(s string) bool {
+	if strings.Count(s, ".") > 1 {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		if (s[i] >= '0' && s[i] > '9') || s[i] == '.' {
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+func IsInteger(s string) bool {
 	for i := 0; i < len(s); i++ {
 		if s[i] < '0' || s[i] > '9' {
 			return false
@@ -78,3 +92,27 @@ func IsNumber(s string) bool {
 	}
 	return true
 }
+
+func IsPrint(s string) bool {
+	for _, c := range s {
+		if !unicode.IsPrint(rune(c)) {
+			return false
+		}
+	}
+	return true
+}
+
+// type String struct{ s string }
+/*
+func NewString(s string) *String { return &String{s} }
+func (this *String) Raw() string { return this.s }
+
+func (this *String) Mid(from, length int) *String { return NewString(this.s[from:length]) }
+*/
+
+// 以类方法的方式使用string相关函数，使用时可以拷贝过去
+// 不过还是有许多代码要写的
+
+type Str string
+
+func (this Str) Mid(from, length int) Str { return Str(this[from:length]) }

@@ -214,10 +214,6 @@ func ReduceAny(f *Func, vs interface{}, iv interface{}) interface{} {
 }
 
 // tool function
-func ToAny(src interface{}) interface{} {
-	return src
-}
-
 func MapToAnyMap(src interface{}) map[interface{}]interface{} {
 	tsrc := reflect.TypeOf(src)
 	if tsrc.Kind() != reflect.Map {

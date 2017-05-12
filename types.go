@@ -5,7 +5,42 @@ import (
 )
 
 // TODO how add methods for Any type
-type Any interface{}
+type IAny interface{}
+
+/*
+invalid receiver type *Any (Any is an interface type)
+func (this *Any) Hehe() {
+}
+*/
+
+type Any struct {
+	I interface{}
+	t reflect.Type
+	v *reflect.Value
+}
+
+func ToAny(i interface{}) Any {
+	v := reflect.ValueOf(i)
+	return Any{i, reflect.TypeOf(i), &v}
+}
+func (this Any) Raw() interface{} { return this.I }
+func (this Any) I0() int          { return this.I.(int) }
+func (this Any) U0() uint         { return this.I.(uint) }
+func (this Any) I8() int8         { return this.I.(int8) }
+func (this Any) U8() uint8        { return this.I.(uint8) }
+func (this Any) I16() int16       { return this.I.(int16) }
+func (this Any) U16() uint16      { return this.I.(uint16) }
+func (this Any) I32() int32       { return this.I.(int32) }
+func (this Any) U32() uint32      { return this.I.(uint32) }
+func (this Any) I64() int64       { return this.I.(int64) }
+func (this Any) U64() uint64      { return this.I.(uint64) }
+func (this Any) F32() float32     { return this.I.(float32) }
+func (this Any) F64() float64     { return this.I.(float64) }
+func (this Any) Str() string      { return this.I.(string) }
+func (this Any) Itable() bool {
+	return this.t.Kind() == reflect.Slice || this.t.Kind() == reflect.Array ||
+		this.t.Kind() == reflect.Map
+}
 
 // maybe can use Once for lazy
 var vInt8Ty int8

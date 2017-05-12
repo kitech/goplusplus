@@ -43,7 +43,7 @@ func ToSlice(v interface{}, reverse bool) []interface{} {
 	}
 }
 
-func Assert(v interface{}) {
+func Assert(v interface{}, info string) {
 	if v == nil {
 		panic(v)
 	}

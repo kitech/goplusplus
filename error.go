@@ -1,3 +1,4 @@
+// error with stack
 package gopp
 
 import (
@@ -12,10 +13,20 @@ type Error struct {
 }
 
 func NewError(estr string, eno ...int) Error {
+	return newErrorN(estr, 2, eno...)
+}
+func NewErrora(ev interface{}, eno ...int) Error {
+	return newErrorN(fmt.Sprintf("%v", ev), 2, eno...)
+}
+func NewErroraN(ev interface{}, skipn int, eno ...int) Error {
+	return newErrorN(fmt.Sprintf("%v", ev), skipn+2, eno...)
+}
+
+func newErrorN(estr string, skipn int, eno ...int) Error {
 	var pc = make([]uintptr, 0)
-	n := runtime.Callers(1, nil)
+	n := runtime.Callers(skipn, nil)
 	pc = make([]uintptr, n)
-	runtime.Callers(1, pc)
+	runtime.Callers(skipn, pc)
 	if eno != nil && len(eno) > 0 {
 		return Error{errno: eno[0], errstr: estr, stack: pc}
 	}
