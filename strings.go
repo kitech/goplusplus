@@ -2,6 +2,7 @@ package gopp
 
 import (
 	"bytes"
+	"encoding/json"
 	"strings"
 	"unicode"
 )
@@ -75,8 +76,8 @@ func IsNumberic(s string) bool {
 	if strings.Count(s, ".") > 1 {
 		return false
 	}
-	for i := 0; i < len(s); i++ {
-		if (s[i] >= '0' && s[i] > '9') || s[i] == '.' {
+	for _, c := range s {
+		if unicode.IsNumber(c) || c == '.' {
 		} else {
 			return false
 		}
@@ -85,8 +86,8 @@ func IsNumberic(s string) bool {
 }
 
 func IsInteger(s string) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i] < '0' || s[i] > '9' {
+	for _, c := range s {
+		if !unicode.IsDigit(c) {
 			return false
 		}
 	}
@@ -116,3 +117,13 @@ func (this *String) Mid(from, length int) *String { return NewString(this.s[from
 type Str string
 
 func (this Str) Mid(from, length int) Str { return Str(this[from:length]) }
+
+func JsonEncode(v interface{}) (js string, err error) {
+	w := bytes.NewBuffer([]byte{})
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(true)
+
+	err = enc.Encode(v)
+	js = string(w.Bytes())
+	return
+}

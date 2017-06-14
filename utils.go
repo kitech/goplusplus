@@ -70,7 +70,8 @@ func Assert(v interface{}, info string) {
 
 // 俩工具
 // 直接忽略掉变量未使用编译提示
-func G_USED(vars ...interface{}) {}
+func G_USED(vars ...interface{})   {}
+func G_UNUSED(vars ...interface{}) {}
 func G_FATAL(err error) {
 	if err != nil {
 		panic(err)

@@ -93,9 +93,9 @@ func Test_Many_1(t *testing.T) {
 
 func Test_Compose_1(t *testing.T) {
 	f1 := Must(Compose(strings.ToUpper, strings.ToLower))
-	Assert(f1)
+	Assert(f1, "")
 	toUpper := MustFunc(strings.ToUpper)
 	fields := MustFunc(strings.Fields)
 	f2 := Must(ComposeFunc(toUpper, fields))
-	Assert(f2)
+	Assert(f2, "")
 }

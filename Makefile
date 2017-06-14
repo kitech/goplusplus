@@ -1,4 +1,5 @@
 all:
+	go generate
 	go install gopp
 	go build -v main.go
 
