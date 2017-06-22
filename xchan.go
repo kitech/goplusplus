@@ -1,7 +1,11 @@
 package gopp
 
 import (
+	"errors"
+	"fmt"
+	"reflect"
 	"sync"
+	"time"
 )
 
 // 通用的可自动回收关闭的go channel封装
@@ -68,4 +72,26 @@ func (this *xchan) Read() interface{} {
 
 func xchan_wait() {
 	gwg.Wait()
+}
+
+// 安全地寫入channel，避免panic，避免阻塞
+func SafeTrySend(c interface{}, v interface{}) (err error) {
+	cv := reflect.ValueOf(c)
+	vv := reflect.ValueOf(v)
+	defer func() {
+		if x := recover(); x != nil {
+			// runtime.plainError
+			err = errors.New(fmt.Sprintf("%v", x))
+		}
+	}()
+	ok := cv.TrySend(vv)
+	if !ok {
+		err = errors.New("will block")
+	}
+	return
+}
+
+// 帶超時的寫入channel
+func SendChanTimeouted(c interface{}, v interface{}, d ...time.Duration) (err error) {
+	return
 }

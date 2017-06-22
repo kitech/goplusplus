@@ -6,12 +6,14 @@ import (
 	"runtime"
 )
 
+// Error with errno and stack info
 type Error struct {
 	errno  int
 	errstr string
 	stack  []uintptr
 }
 
+// eno 模擬可選參數
 func NewError(estr string, eno ...int) Error {
 	return newErrorN(estr, 2, eno...)
 }

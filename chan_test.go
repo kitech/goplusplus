@@ -2,6 +2,7 @@ package gopp
 
 import (
 	"log"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -52,5 +53,36 @@ func TestC3(t *testing.T) {
 	f3 := func() chan<- struct{} { return nil }
 	if false {
 		log.Println(&f1, &f2, &f3)
+	}
+}
+
+// 測試一下chan的運行時狀態
+func TestChanRT0(t *testing.T) {
+	{ // close不影響channel 的valid屬性
+		c := make(chan bool, 0)
+		cv := reflect.ValueOf(c)
+		log.Println(cv.IsValid()) //true
+		close(c)
+		log.Println(cv.IsValid()) //true
+	}
+	{ // close的channel讀取到默認值
+		c := make(chan bool, 0)
+		cv := reflect.ValueOf(c)
+		x, ok := cv.TryRecv()
+		log.Println(x, ok) // <invalid reflect.Value> false
+		close(c)
+		x, ok = cv.TryRecv()
+		log.Println(x, ok) // false,false
+	}
+	{ // close 的 channel 寫入導致panic
+		c := make(chan bool, 0)
+		cv := reflect.ValueOf(c)
+		ok := cv.TrySend(reflect.ValueOf(true))
+		log.Println(ok) // false
+		close(c)
+		// ok = cv.TrySend(reflect.ValueOf(true))
+		// log.Println(ok) // panic
+		err := SafeTrySend(c, true)
+		log.Println(err) //  send on closed channel
 	}
 }

@@ -1,6 +1,6 @@
 package gopp
 
-import ()
+import "log"
 
 type FuncTools struct {
 	first     chan interface{}
@@ -65,3 +65,14 @@ func Fcmap(sets chan string, f func(string) bool) <-chan string {
 
 	return ch
 }
+
+// curry function，
+// 爲了通用一點，可能涉及到interface{}
+// 這只是個原地使用的例子
+func applyFnDemo() {
+	curry_src_fn := func(a int, b int) {}
+	curry_dest_fn := func(b int) { curry_src_fn(123, b) }
+	log.Println(&curry_dest_fn)
+}
+
+// see https://github.com/choleraehyq/gofunctools/functools
