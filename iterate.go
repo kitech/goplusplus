@@ -9,6 +9,7 @@ type Pair struct {
 	Val interface{}
 }
 
+// 支持可以迭代的类型：结构体，slice，数组，字符串，map
 func Domap(ins interface{}, f func(interface{}) interface{}) (outs []interface{}) {
 	outs = make([]interface{}, 0)
 

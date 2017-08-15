@@ -7,66 +7,56 @@ import (
 	"runtime"
 	"strings"
 	"unsafe"
+
+	"github.com/emirpasic/gods/sets/hashset"
 )
 
 func KeepMe() {}
 
+// 直接传递候选函数的方式
+/*
+类似C++的overload name resolve
+
+@param args 传递的实参值
+@param fns 候选函数列表
+@return 返回候选函数索引值，失败返回-1
+*/
+func SymbolResolveFns(args []interface{}, fns []interface{}) int {
+	vtys := make(map[int]map[int]reflect.Type)
+
+	for idx, fnx := range fns {
+		vty := getFuncTypes(fnx)
+		vtys[idx] = vty
+	}
+
+	return SymbolResolve(args, vtys)
+}
+
 // 类似C++的overload name resolve
-func SymbolResolve(args []interface{}, vtys map[int32]map[int32]reflect.Type) int32 {
+/*
+@param args 传递的实参值
+@param vtys 候选函数形参类型
+@return 返回候选函数索引值，失败返回-1
+*/
+func SymbolResolve(args []interface{}, vtys map[int]map[int]reflect.Type) int {
 	// cycle 1
 	if ret := symbolResolveComplete(args, vtys); ret != -1 {
 		return ret
 	}
 
 	// cycle 2
+	if ret := symbolResolveSubTypeConvert(args, vtys); ret != -1 {
+		return ret
+	}
+
+	// cycle 3
 	if ret := symbolResolveConvert(args, vtys); ret != -1 {
 		return ret
 	}
 
 	// cycle others
-	argc := len(args)
-	if argc < 0 {
-	}
-
-	matsyms := make(map[int32]bool, 0)
-	for symidx := 0; symidx < len(vtys); symidx++ {
-		vty := vtys[int32(symidx)]
-		pnum := len(vty)
-
-		// TODO maybe have default values
-		if argc != pnum {
-			continue
-		}
-
-		matp := make(map[int]bool, len(vty))
-		for idx := 0; idx < len(vty); idx++ {
-			matp[idx] = false
-
-			ety := vty[int32(idx)]
-			aty := reflect.TypeOf(args[idx])
-
-			if ety.Kind() != reflect.Struct && (aty.ConvertibleTo(ety) || aty.AssignableTo(ety)) {
-				matp[idx] = true
-			}
-			if matp[idx] == false {
-				if canHandyConvert(aty, ety) {
-					matp[idx] = true
-				}
-			}
-
-		}
-
-		// a folder/reduce
-		ismat := true
-		for idx := 0; idx < len(matp); idx++ {
-			ismat = ismat && matp[idx]
-		}
-
-		// 查找到第一个match的symbol即返回
-		if ismat {
-			matsyms[int32(symidx)] = true // 准备多级match
-			return int32(symidx)
-		}
+	if ret := symbolResolveFind(args, vtys, canHandyConvertFinder); ret != 0-1 {
+		return ret
 	}
 
 	return -1
@@ -77,47 +67,8 @@ func FillDefaultValues(args []interface{}, dvals []interface{}) []interface{} {
 }
 
 // 完全匹配，参数个数，参数类型
-func symbolResolveComplete(args []interface{}, vtys map[int32]map[int32]reflect.Type) int32 {
-	argc := len(args)
-	if argc < 0 {
-	}
-
-	matsyms := make(map[int32]bool, 0)
-	for symidx := 0; symidx < len(vtys); symidx++ {
-		vty := vtys[int32(symidx)]
-		pnum := len(vty)
-
-		if argc != pnum {
-			continue
-		}
-
-		// 参数类型匹配
-		matp := make(map[int]bool, len(vty))
-		for idx := 0; idx < len(vty); idx++ {
-			matp[idx] = false
-
-			ety := vty[int32(idx)]
-			aty := reflect.TypeOf(args[idx])
-
-			if aty.AssignableTo(ety) {
-				matp[idx] = true
-			}
-		}
-
-		// a folder/reduce
-		ismat := true
-		for idx := 0; idx < len(matp); idx++ {
-			ismat = ismat && matp[idx]
-		}
-
-		// 查找到第一个match的symbol即返回
-		if ismat {
-			matsyms[int32(symidx)] = true // 准备多级match
-			return int32(symidx)
-		}
-	}
-
-	return -1
+func symbolResolveComplete(args []interface{}, vtys map[int]map[int]reflect.Type) int {
+	return symbolResolveFind(args, vtys, assignFinder)
 }
 
 // 参数个数匹配
@@ -129,16 +80,70 @@ func symbolResolveCount() {
 func symbolResolveType() {
 }
 
+func symbolResolveSubTypeConvert(args []interface{}, vtys map[int]map[int]reflect.Type) int {
+	return symbolResolveFind(args, vtys, convertSubTypeFinder)
+}
+
+// TODO convert区分子类型与优先级, 比如float32类型匹配float64类型优先
+// 子类型，float: float32/float64
 // 参数个数匹配
 // 参数类型转换匹配
-func symbolResolveConvert(args []interface{}, vtys map[int32]map[int32]reflect.Type) int32 {
+func symbolResolveConvert(args []interface{}, vtys map[int]map[int]reflect.Type) int {
+	return symbolResolveFind(args, vtys, convertFinder)
+}
+
+type symfindfunc func(idx int, fromty, toty reflect.Type) bool
+
+func assignFinder(idx int, fromty, toty reflect.Type) bool {
+	return fromty.AssignableTo(toty)
+}
+
+func convertFinder(idx int, fromty, toty reflect.Type) bool {
+	return fromty.ConvertibleTo(toty)
+}
+
+func convertSubTypeFinder(idx int, fromty, toty reflect.Type) bool {
+	if fromty.ConvertibleTo(toty) {
+		subsetsF := hashset.New()
+		subsetsF.Add(reflect.Float32, reflect.Float64)
+		if subsetsF.Contains(fromty.Kind(), toty.Kind()) {
+			return true
+		}
+		subsetsI := hashset.New()
+		subsetsI.Add(reflect.Int, reflect.Int8,
+			reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16,
+			reflect.Uint32, reflect.Uint64)
+		if subsetsI.Contains(fromty.Kind(), toty.Kind()) {
+			return true
+		}
+	}
+	return false
+}
+
+func canHandyConvertFinder(idx int, fromty, toty reflect.Type) bool {
+	if toty.Kind() != reflect.Struct &&
+		(fromty.ConvertibleTo(toty) || fromty.AssignableTo(toty)) {
+		return true
+	}
+
+	if canHandyConvert(fromty, toty) {
+		return true
+	}
+
+	return false
+}
+
+// TODO FindAll，没有全局信息，无法找到最优匹配
+// 查找满足条件的第一条
+func symbolResolveFind(args []interface{}, vtys map[int]map[int]reflect.Type, matcher symfindfunc) int {
 	argc := len(args)
 	if argc < 0 {
 	}
 
-	matsyms := make(map[int32]bool, 0)
+	matsyms := make(map[int]bool, 0)
 	for symidx := 0; symidx < len(vtys); symidx++ {
-		vty := vtys[int32(symidx)]
+		vty := vtys[symidx]
 		pnum := len(vty)
 
 		if argc != pnum {
@@ -150,12 +155,15 @@ func symbolResolveConvert(args []interface{}, vtys map[int32]map[int32]reflect.T
 		for idx := 0; idx < len(vty); idx++ {
 			matp[idx] = false
 
-			ety := vty[int32(idx)]
+			ety := vty[idx]
 			aty := reflect.TypeOf(args[idx])
 
 			// 关键点？
-			if aty.ConvertibleTo(ety) {
+			if matcher(idx, aty, ety) {
 				matp[idx] = true
+				if ety.Size() < aty.Size() {
+					log.Println("Warning: maybe lost precision")
+				}
 			}
 		}
 
@@ -167,8 +175,8 @@ func symbolResolveConvert(args []interface{}, vtys map[int32]map[int32]reflect.T
 
 		// 查找到第一个match的symbol即返回
 		if ismat {
-			matsyms[int32(symidx)] = true // 准备多级match
-			return int32(symidx)
+			matsyms[symidx] = true // 准备多级match
+			return symidx
 		}
 	}
 
@@ -251,7 +259,7 @@ func UniverseFree(this interface{}) {
 }
 
 /////////
-func getFuncTypes(f interface{}) map[int32]reflect.Type {
+func getFuncTypes(f interface{}) map[int]reflect.Type {
 	if f == nil {
 		return nil
 	}
@@ -262,11 +270,19 @@ func getFuncTypes(f interface{}) map[int32]reflect.Type {
 		return nil
 	}
 
-	rets := make(map[int32]reflect.Type, 0)
+	rets := make(map[int]reflect.Type, 0)
 	for idx := 0; idx < vf.NumIn(); idx++ {
-		rets[int32(idx)] = vf.In(idx)
+		rets[idx] = vf.In(idx)
 	}
 	return rets
+}
+
+func getArgsValues(args []interface{}) (argv []reflect.Value) {
+	argv = make([]reflect.Value, len(args))
+	for idx, arg := range args {
+		argv[idx] = reflect.ValueOf(arg)
+	}
+	return
 }
 
 /////////
@@ -321,4 +337,28 @@ func DoubleTy(pointer bool) reflect.Type {
 func VoidpTy() reflect.Type {
 	var v unsafe.Pointer = nil
 	return reflect.TypeOf(v)
+}
+
+/// overload helper function
+func convArgsForFunc(args []interface{}, fn interface{}) (argv []reflect.Value) {
+	argv = make([]reflect.Value, len(args))
+
+	fnty := reflect.TypeOf(fn)
+	for i := 0; i < fnty.NumIn(); i++ {
+		argv[i] = convArgForType(args[i], fnty.In(i))
+	}
+
+	return
+}
+
+func convArgForType(arg interface{}, ty reflect.Type) reflect.Value {
+	argval := reflect.ValueOf(arg)
+	retval := argval.Convert(ty)
+	return retval
+}
+
+func overloadRcCall(args []interface{}, fnx interface{}) (out []reflect.Value) {
+	in := convArgsForFunc(args, fnx)
+	out = reflect.ValueOf(fnx).Call(in)
+	return out
 }

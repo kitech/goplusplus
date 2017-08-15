@@ -1,8 +1,33 @@
 package gopp
 
 import (
+	"log"
 	"math"
 )
+
+func AbsNum(x interface{}) interface{} {
+	f1 := func(x int64) int64 {
+		if x < 0 {
+			return -x
+		}
+		return x
+	}
+	f2 := func(x float64) float64 {
+		if x < 0.0 {
+			return -x
+		}
+		return x
+	}
+
+	fns := []interface{}{f1, f2}
+	fnidx := SymbolResolveFns([]interface{}{x}, fns)
+	if fnidx == -1 {
+		log.Panicln("Unresolved")
+	}
+
+	out := overloadRcCall([]interface{}{x}, fns[fnidx])
+	return out[0].Interface()
+}
 
 func AbsI64(x int64) int64 {
 	if x < 0 {

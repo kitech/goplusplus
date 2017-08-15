@@ -7,9 +7,9 @@ import (
 )
 
 func OverloadInvoke(args []interface{}, fs []interface{}) []interface{} {
-	var vtys = make(map[int32]map[int32]reflect.Type, 0)
+	var vtys = make(map[int]map[int]reflect.Type, 0)
 	for idx := 0; idx < len(fs); idx++ {
-		vtys[int32(idx)] = getFuncTypes(fs[idx])
+		vtys[idx] = getFuncTypes(fs[idx])
 	}
 	var midx = SymbolResolve(args, vtys)
 	if midx == -1 {
