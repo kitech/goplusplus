@@ -101,3 +101,37 @@ func IV2Strings(items []interface{}) []string {
 	}
 	return rets
 }
+
+// enumerate类似功能
+// 第一种方式，采用数组,可能用内存比较多
+// usage: for i := range gopp.Range(5){}
+func RangeA(n int) (rg []int) {
+	rg = make([]int, n)
+	for i := 0; i < n; i++ {
+		rg[i] = i
+	}
+	return
+}
+
+// 第二种方式，采用channel。由于用到一个goroutine，可能效率慢
+func RangeC(n int) <-chan int {
+	ch := make(chan int)
+	go func() {
+		for i := 0; i < n; i++ {
+			ch <- i
+		}
+		close(ch)
+	}()
+	return ch
+}
+
+// TODO
+type Iterable interface {
+	Iter() interface{}
+	Next() interface{}
+}
+
+// string/map/slice/struct or implementation Iterable
+func CanIter(v interface{}) bool {
+	return false
+}

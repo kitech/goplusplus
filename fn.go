@@ -14,6 +14,7 @@ type Func struct {
 	out reflect.Type
 	f   func(interface{}) interface{}
 	f2  func(interface{}, interface{}) interface{}
+	// fx  func(...interface{}) // TODO
 }
 
 func (self Func) Call(v interface{}) interface{} {

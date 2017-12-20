@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"syscall"
 	"time"
 )
 
+// TODO 要是侯选可以惰性求值就好了，否则在只能一个求值的场景则会有问题
 // 简单的三元去处模拟函数
 func IfElse(q bool, tv interface{}, fv interface{}) interface{} {
 	if q == true {
@@ -43,14 +45,18 @@ func ToSlice(v interface{}, reverse bool) []interface{} {
 	}
 }
 
-func Assert(v interface{}, info string) {
+func Assert(v interface{}, info string, args ...interface{}) {
+	fmtv := fmt.Sprintf("%+v, %+v", v, info)
+	for _, arg := range args {
+		fmtv += fmt.Sprintf(", %+v", arg)
+	}
 	if v == nil {
-		panic(v)
+		panic(fmtv)
 	}
 
 	tv := reflect.TypeOf(v)
 	if tv.Kind() == reflect.Bool && v.(bool) == false {
-		panic(v)
+		panic(fmtv)
 	}
 
 	vv := reflect.ValueOf(v)
@@ -59,11 +65,11 @@ func Assert(v interface{}, info string) {
 		reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Uint8, reflect.Int8:
 		if vv.Int() == 0 {
-			panic(v)
+			panic(fmtv)
 		}
 	case reflect.String:
 		if v.(string) == "" {
-			panic(v)
+			panic(fmtv)
 		}
 	}
 }
@@ -111,8 +117,10 @@ func WAITIF(condfn func() bool, msec int) {
 }
 
 func FileExist(fname string) bool {
-	if _, err := os.Stat(fname); err == os.ErrNotExist {
-		return false
+	if _, err := os.Stat(fname); err != nil {
+		if err.(*os.PathError).Err == syscall.ENOENT {
+			return false
+		}
 	}
 	return true
 }

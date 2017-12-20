@@ -13,3 +13,6 @@ func TimeToFmt1(t time.Time) string {
 func Duround(d time.Duration) string {
 	return d.String()
 }
+
+const CleanDateFmt = "2006-01-02 15:04:05"
+const HttpDateFmt = "Mon, 02 Jan 2006 15:04:05 GMT" // "Sat, 30 Sep 2017 00:10:59 GMT"

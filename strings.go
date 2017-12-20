@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 	"unicode"
+
+	_ "github.com/huandu/xstrings"
 )
 
 // 安全提取子字符串。支持负值，表示从后面
@@ -56,12 +58,70 @@ func Splitn(s string, n int) []string {
 	return v
 }
 
+// rune support
+func Splitrn(s string, n int) []string {
+	v := make([]string, 0)
+
+	sub := ""
+	sublen := 0
+	for _, c := range s {
+		cs := string(c)
+		if sublen+len(cs) > n {
+			v = append(v, sub)
+			sub = ""
+			sublen = 0
+		} else {
+			sub += cs
+			sublen += len(cs)
+		}
+	}
+
+	if sublen > 0 {
+		v = append(v, sub)
+	}
+	return v
+}
+
+// line support
+// TODO one line exceed n???
+func Splitln(s string, n int) []string {
+	v := make([]string, 0)
+
+	ls := strings.Split(s, "\n")
+
+	sub := ""
+	sublen := 0
+	for _, line := range ls {
+		if sublen+1+len(line) > n {
+			v = append(v, sub)
+			sub = ""
+			sublen = 0
+		} else {
+			sub += line + "\n"
+			sublen += len(line) + 1
+		}
+	}
+
+	if sublen > 0 {
+		v = append(v, sub)
+	}
+	return v
+}
+
 func StrPrepend(s string, b byte) string {
 	return string(append([]byte{b}, bytes.NewBufferString(s).Bytes()...))
 }
 
 func StrPrepend2(s string, b byte) string {
 	return string([]byte{b}) + s
+}
+
+func StrReverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
 }
 
 // 仅Title第一个字节

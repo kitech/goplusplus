@@ -32,7 +32,10 @@ func MapValues(m interface{}) []interface{} {
 }
 
 type Map struct {
+	m interface{}
 }
+
+func NewMap(m interface{}) *Map { return &Map{m} }
 
 type Array struct {
 	a Any

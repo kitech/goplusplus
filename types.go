@@ -1,6 +1,8 @@
 package gopp
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
 )
 
@@ -15,15 +17,15 @@ func (this *Any) Hehe() {
 
 type Any struct {
 	I interface{}
-	t reflect.Type
-	v *reflect.Value
+	// v *reflect.Value
 }
 
 func ToAny(i interface{}) Any {
-	v := reflect.ValueOf(i)
-	return Any{i, reflect.TypeOf(i), &v}
+	// v := reflect.ValueOf(i)
+	return Any{i}
 }
 func (this Any) Raw() interface{} { return this.I }
+func (this Any) IsNil() bool      { return this.I == nil }
 func (this Any) I0() int          { return this.I.(int) }
 func (this Any) U0() uint         { return this.I.(uint) }
 func (this Any) I8() int8         { return this.I.(int8) }
@@ -37,9 +39,22 @@ func (this Any) U64() uint64      { return this.I.(uint64) }
 func (this Any) F32() float32     { return this.I.(float32) }
 func (this Any) F64() float64     { return this.I.(float64) }
 func (this Any) Str() string      { return this.I.(string) }
-func (this Any) Itable() bool {
-	return this.t.Kind() == reflect.Slice || this.t.Kind() == reflect.Array ||
-		this.t.Kind() == reflect.Map
+func (this Any) Iterable() bool {
+	switch reflect.TypeOf(this.I).Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map,
+		reflect.String, reflect.Struct:
+		return true
+	}
+	return false
+}
+func (this Any) CanMKey() bool {
+	return true // 是否能作为map的key
+}
+func (this Any) AsStr() string { return fmt.Sprintf("%v", this.I) }
+func (this Any) AsJson() []byte {
+	bcc, err := json.Marshal(this.I)
+	ErrPrint(err)
+	return bcc
 }
 
 // maybe can use Once for lazy

@@ -20,7 +20,7 @@ func init() {
 }
 
 func RandomStringAlphaDigit(strlen int) string {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+	const chars = AlphaChars
 	return RandomStringAny(strlen, chars)
 }
 

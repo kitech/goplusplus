@@ -3,7 +3,11 @@ package gopp
 
 import (
 	"fmt"
+	"log"
 	"runtime"
+	"runtime/debug"
+
+	_ "github.com/pkg/errors"
 )
 
 // Error with errno and stack info
@@ -73,6 +77,23 @@ func (this Error) Display() {
 	this.PrintStack()
 }
 
+func ErrPrint(err error, args ...interface{}) error {
+	if err != nil {
+		msg := fmt.Sprintf("%+v", err)
+		for _, arg := range args {
+			msg += fmt.Sprintf(" %+v", arg)
+		}
+		log.Output(2, msg)
+	}
+	return err
+}
+
+func ErrFatal(err error) {
+	if err != nil {
+		log.Output(2, fmt.Sprintf("%v", err))
+	}
+}
+
 func init() {
 	if false {
 		f1 := func() error {
@@ -80,5 +101,24 @@ func init() {
 		}
 		if f1 != nil {
 		}
+	}
+}
+
+// usage: defer Panicp()
+func Panicp() {
+	if err := recover(); err != nil {
+		bs := debug.Stack()
+		log.Println("error:", err, ", stack:", string(bs))
+	}
+}
+
+// usage: defer func(){Panicp(recover())}()
+// do use like this: defer gopp.Panicp(recover())
+// because need lazy call recover()
+// need macro in golang
+func Panicp2(err interface{}) {
+	if err != nil {
+		bs := debug.Stack()
+		log.Println("error:", err, ", stack:", string(bs))
 	}
 }
