@@ -29,6 +29,11 @@ func RandomStringAlphaLower(strlen int) string {
 	return RandomStringAny(strlen, chars)
 }
 
+func RandomStringAlphaLowerDigit(strlen int) string {
+	const chars = LowerChars + DigitChars
+	return RandomStringAny(strlen, chars)
+}
+
 func RandomStringAlphaUpper(strlen int) string {
 	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	return RandomStringAny(strlen, chars)
@@ -43,6 +48,8 @@ func RandomStringPrintable(strlen int) string {
 	const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}|:\"';,./<>?_+"
 	return RandomStringAny(strlen, chars)
 }
+
+func RandStrHex(l int) string { return RandomStringAny(l, HexChars) }
 
 // string + string vs []string join的速度
 func RandomStringUTF8(strlen int) string {

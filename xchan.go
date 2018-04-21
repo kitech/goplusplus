@@ -95,3 +95,31 @@ func SafeTrySend(c interface{}, v interface{}) (err error) {
 func SendChanTimeouted(c interface{}, v interface{}, d ...time.Duration) (err error) {
 	return
 }
+
+// 同时select一组不同类型的channel
+func Select(chs []interface{}, timeout time.Duration) interface{} {
+	sltCases := []reflect.SelectCase{}
+	if timeout.Nanoseconds() != 0 {
+		ch := time.After(timeout)
+		sltCase := reflect.SelectCase{}
+		sltCase.Chan = reflect.ValueOf(ch)
+		sltCases = append(sltCases, sltCase)
+	}
+
+	for _, chx := range chs {
+		sltCase := reflect.SelectCase{}
+		sltCase.Chan = reflect.ValueOf(chx)
+		if sltCase.Chan.Type().Kind() != reflect.Chan {
+			return nil
+		}
+		sltCase.Dir = reflect.SelectRecv
+		sltCases = append(sltCases, sltCase)
+	}
+
+	chosen, rval, ok := reflect.Select(sltCases)
+	if !ok {
+		_ = chosen
+		return nil
+	}
+	return rval.Interface()
+}

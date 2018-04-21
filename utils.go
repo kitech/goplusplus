@@ -27,6 +27,13 @@ func IfElseStr(q bool, tv string, fv string) string {
 	return IfElse(q, tv, fv).(string)
 }
 
+func IfThen(q bool, thens ...interface{}) interface{} {
+	if len(thens) > 0 {
+		return thens[0]
+	}
+	return nil
+}
+
 // 把一个值转换为数组切片
 // 如果本身即为数组切片，则显式转换为数组类型
 // 如果本身不是数组切片，则把该值作为返回数组切片的第一个值。
@@ -121,6 +128,18 @@ func FileExist(fname string) bool {
 		if err.(*os.PathError).Err == syscall.ENOENT {
 			return false
 		}
+	}
+	return true
+}
+
+// exists returns whether the given file or directory exists or not
+func FileExist2(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
 	}
 	return true
 }

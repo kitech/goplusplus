@@ -29,6 +29,8 @@ func NewJsonFromObject(j *simplejson.Json) *Json {
 	return &Json{j}
 }
 
+func (j *Json) Ori() *simplejson.Json { return j.jo }
+
 func (j *Json) GetPathDot(branch string) *Json {
 	return &Json{j.jo.GetPath(strings.Split(branch, ".")...)}
 }
@@ -80,4 +82,8 @@ func (j *Json) MustString(args ...string) string {
 
 func (j *Json) MustArray(args ...[]interface{}) []interface{} {
 	return j.jo.MustArray(args...)
+}
+
+func (j *Json) MustMap(args ...map[string]interface{}) map[string]interface{} {
+	return j.jo.MustMap(args...)
 }

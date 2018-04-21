@@ -4,6 +4,7 @@ package gopp
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"runtime"
 	"runtime/debug"
 
@@ -77,13 +78,17 @@ func (this Error) Display() {
 	this.PrintStack()
 }
 
+func printq(v interface{}, args ...interface{}) string {
+	msg := fmt.Sprintf("%+v", v)
+	for _, arg := range args {
+		msg += fmt.Sprintf(" %+v", arg)
+	}
+	return msg
+}
+
 func ErrPrint(err error, args ...interface{}) error {
 	if err != nil {
-		msg := fmt.Sprintf("%+v", err)
-		for _, arg := range args {
-			msg += fmt.Sprintf(" %+v", arg)
-		}
-		log.Output(2, msg)
+		log.Output(2, printq(err, args...))
 	}
 	return err
 }
@@ -92,6 +97,50 @@ func ErrFatal(err error) {
 	if err != nil {
 		log.Output(2, fmt.Sprintf("%v", err))
 	}
+}
+
+func FalsePrint(ok bool, args ...interface{}) bool {
+	if !ok {
+		log.Output(2, printq(ok, args...))
+	}
+	return ok
+}
+
+func NilPrint(v interface{}, args ...interface{}) interface{} {
+	if v == nil {
+		log.Output(2, printq(v, args...))
+	}
+	return v
+}
+
+func ZeroPrint(v interface{}, args ...interface{}) interface{} {
+	if reflect.Zero(reflect.TypeOf(v)).Interface() == v {
+		log.Output(2, printq(v, args))
+	}
+	return v
+}
+
+// NOT mean: error != nil or bool == false or int == 0 or pointer == nil or other what?
+func NotPrint(v interface{}, args ...interface{}) interface{} {
+	switch rv := v.(type) {
+	case error:
+		ErrPrint(rv, args...)
+	case bool:
+		FalsePrint(rv, args...)
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		ZeroPrint(rv, args...)
+	default:
+		vty := reflect.TypeOf(v)
+		switch vty.Kind() {
+		case reflect.Ptr, reflect.Func, reflect.Interface,
+			reflect.Array, reflect.Chan, reflect.Map, reflect.Slice,
+			reflect.UnsafePointer:
+			NilPrint(v, args...)
+		default:
+			log.Println("unknown type:", vty.String())
+		}
+	}
+	return v
 }
 
 func init() {

@@ -1,9 +1,15 @@
 package gopp
 
+/*
+#include <string.h>
+*/
+import "C"
 import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
+	"unsafe"
 )
 
 // TODO how add methods for Any type
@@ -57,6 +63,24 @@ func (this Any) AsJson() []byte {
 	return bcc
 }
 
+// 把浮点数存储在uint64中
+func Float64AsInt(n float64) (rv uint64) {
+	C.memcpy((unsafe.Pointer(&rv)), (unsafe.Pointer(&n)), 8)
+	return
+}
+func Float32AsInt(n float32) (rv uint64) {
+	C.memcpy((unsafe.Pointer(&rv)), (unsafe.Pointer(&n)), 4)
+	return
+}
+func IntAsFloat64(v uint64) (n float64) {
+	C.memcpy((unsafe.Pointer(&n)), (unsafe.Pointer(&v)), 8)
+	return
+}
+func IntAsFloat32(v uint64) (n float32) {
+	C.memcpy((unsafe.Pointer(&n)), (unsafe.Pointer(&v)), 4)
+	return
+}
+
 // maybe can use Once for lazy
 var vInt8Ty int8
 var vUint8Ty uint8
@@ -99,6 +123,21 @@ var Float32PtrTy = reflect.TypeOf(&vFloat32Ty)
 var Float64PtrTy = reflect.TypeOf(&vFloat64Ty)
 var BoolPtrTy = reflect.TypeOf(&vBoolTy)
 var StrPtrTy = reflect.TypeOf(&vStrTy)
+
+const ByteTySz = unsafe.Sizeof(byte(0))
+const Int8TySz = strconv.IntSize / 4
+const Int16TySz = Int8TySz * 2
+const Int32TySz = Int8TySz * 4
+const Int64TySz = Int8TySz * 8
+const Float64TySz = Int8TySz * 8
+const Float32TySz = Int8TySz * 4
+const UintptrTySz = unsafe.Sizeof(uintptr(0))
+const BoolTySz = unsafe.Sizeof(true)
+const IntTySz = unsafe.Sizeof(int(0))
+const RuneTySz = unsafe.Sizeof(rune(0))
+const EmptyStructTySz = unsafe.Sizeof(struct{}{})
+
+// const NilSz = unsafe.Sizeof(nil)
 
 func IsMap(v interface{}) bool {
 	return reflect.TypeOf(v).Kind() == reflect.Map

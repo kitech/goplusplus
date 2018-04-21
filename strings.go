@@ -33,6 +33,20 @@ func StrSuf(s string, n int) string {
 	return r
 }
 
+// for ui, ascii = 1, else 2
+func StrSuf4ui(s string, n int, center ...int) string {
+	r := ""
+	rlen := 0
+	for _, c := range s {
+		rlen += IfElseInt(c < 128, 1, 2)
+		r += IfElseStr(rlen > n, IfElseStr(len(center) > 0, " …", "..."), string(c))
+		if rlen > n {
+			break
+		}
+	}
+	return r
+}
+
 func SubBytes(p []byte, n int) []byte {
 	if n >= len(p) {
 		return p
@@ -96,10 +110,10 @@ func Splitln(s string, n int) []string {
 			v = append(v, sub)
 			sub = ""
 			sublen = 0
-		} else {
-			sub += line + "\n"
-			sublen += len(line) + 1
 		}
+
+		sub += line + "\n"
+		sublen += len(line) + 1
 	}
 
 	if sublen > 0 {
