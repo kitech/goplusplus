@@ -36,7 +36,7 @@ func TestChannel0(t *testing.T) {
 func TestAssign0(t *testing.T) {
 	var to uint32 = 123
 	var from int = 567
-	Assign(reflect.ValueOf(&to), reflect.ValueOf(&from))
+	OpAssign(reflect.ValueOf(&to), reflect.ValueOf(&from))
 	if to != uint32(from) {
 		t.Fail()
 	}

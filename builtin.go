@@ -5,6 +5,7 @@ package gopp
 */
 import "C"
 import (
+	"encoding/json"
 	"log"
 	"reflect"
 	"testing"
@@ -17,6 +18,14 @@ func BytesDup(src []byte) []byte {
 		panic("wtf")
 	}
 	return r
+}
+
+func DeepCopy(from interface{}, to interface{}) error {
+	data, err := json.Marshal(from)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, to)
 }
 
 // deepcopy的一種實現，使用json作爲中轉

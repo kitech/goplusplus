@@ -143,6 +143,15 @@ func NotPrint(v interface{}, args ...interface{}) interface{} {
 	return v
 }
 
+// seperate by commba
+func CommaPrintln(args ...interface{}) {
+	nargs := []interface{}{}
+	for _, arg := range args {
+		nargs = append(nargs, arg, ", ")
+	}
+	log.Output(2, printq("", nargs...))
+}
+
 func init() {
 	if false {
 		f1 := func() error {

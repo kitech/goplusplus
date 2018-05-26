@@ -99,9 +99,14 @@ func Splitrn(s string, n int) []string {
 // line support
 // TODO one line exceed n???
 func Splitln(s string, n int) []string {
+	return Splitsn(s, n, "\n")
+}
+
+// string seperator support
+func Splitsn(s string, n int, sep string) []string {
 	v := make([]string, 0)
 
-	ls := strings.Split(s, "\n")
+	ls := strings.Split(s, sep)
 
 	sub := ""
 	sublen := 0
