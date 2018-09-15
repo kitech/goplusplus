@@ -34,6 +34,24 @@ func IfThen(q bool, thens ...interface{}) interface{} {
 	return nil
 }
 
+// for number type, uintptr
+func CmpAndSwapN(src interface{}, old interface{}, new interface{}) (swapped bool) {
+	srcv := reflect.ValueOf(src)
+	if srcv.Type().Kind() != reflect.Ptr {
+		return
+	}
+
+	oldv := reflect.ValueOf(old)
+	newv := reflect.ValueOf(new)
+
+	if reflect.DeepEqual(srcv.Interface(), oldv) {
+		srcv.Elem().Set(newv.Convert(srcv.Type()))
+		swapped = true
+	}
+
+	return
+}
+
 // 把一个值转换为数组切片
 // 如果本身即为数组切片，则显式转换为数组类型
 // 如果本身不是数组切片，则把该值作为返回数组切片的第一个值。
@@ -50,6 +68,10 @@ func ToSlice(v interface{}, reverse bool) []interface{} {
 	} else {
 		return []interface{}{v}
 	}
+}
+
+func Assertf(v interface{}, format string, args ...interface{}) {
+	Assert(v, fmt.Sprintf(format, args...))
 }
 
 func Assert(v interface{}, info string, args ...interface{}) {

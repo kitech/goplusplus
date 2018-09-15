@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-//export InvokeGoFunc
+//-export InvokeGoFunc
 func InvokeGoFunc(fp unsafe.Pointer, argc C.int, argv []C.uint64_t) {
 
 }
@@ -58,7 +58,7 @@ func F4ccUnref(ft *Func4cb) {
 	}
 }
 
-//export InvokeGoFuncWithArgConver
+//-export InvokeGoFuncWithArgConver
 func InvokeGoFuncWithArgConver(ft unsafe.Pointer, argc C.int, argv []C.uint64_t) {
 	fp := (*Func4cb)(ft)
 	log.Println(fp)

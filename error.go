@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"runtime"
 	"runtime/debug"
+	"strings"
 
 	_ "github.com/pkg/errors"
 )
@@ -99,8 +100,28 @@ func ErrFatal(err error) {
 	}
 }
 
+func ErrHave(err error, s string) bool {
+	return err != nil && strings.Contains(err.Error(), s)
+}
+func ErrEqual(err error, s string) bool {
+	return err != nil && err.Error() == s
+}
+func ErrPrefix(err error, s string) bool {
+	return err != nil && strings.HasPrefix(err.Error(), s)
+}
+func ErrSuffix(err error, s string) bool {
+	return err != nil && strings.HasSuffix(err.Error(), s)
+}
+
 func FalsePrint(ok bool, args ...interface{}) bool {
 	if !ok {
+		log.Output(2, printq(ok, args...))
+	}
+	return ok
+}
+
+func TruePrint(ok bool, args ...interface{}) bool {
+	if ok {
 		log.Output(2, printq(ok, args...))
 	}
 	return ok
@@ -111,6 +132,12 @@ func NilPrint(v interface{}, args ...interface{}) interface{} {
 		log.Output(2, printq(v, args...))
 	}
 	return v
+}
+
+func NilFatal(v interface{}, args ...interface{}) {
+	if v == nil {
+		log.Fatalln(printq(v, args...))
+	}
 }
 
 func ZeroPrint(v interface{}, args ...interface{}) interface{} {

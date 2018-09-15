@@ -1,10 +1,28 @@
 package gopp
 
 import (
+	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 )
+
+// u: http://ip:port
+func ProxyHttpClient(u string) *http.Client {
+	tp := &http.Transport{}
+	pxyurl := u
+	urlo, err := url.Parse(pxyurl)
+	if err != nil {
+		log.Panicln(err, pxyurl)
+	}
+
+	tp.Proxy = http.ProxyURL(urlo)
+	cli := &http.Client{}
+	cli.Transport = tp
+
+	return cli
+}
 
 type HttpClient struct {
 	c *http.Client

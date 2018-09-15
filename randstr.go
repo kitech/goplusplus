@@ -86,7 +86,7 @@ func RandomDouble(strlen int, faclen int) string {
 func RandomStringAny(strlen int, chars string) string {
 	result := ""
 	for i := 0; i < strlen; i++ {
-		index := r.Intn(len(chars))
+		index := rand.Intn(len(chars))
 		result += chars[index : index+1]
 	}
 	return result

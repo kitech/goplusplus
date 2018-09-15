@@ -8,8 +8,15 @@ import (
 	"encoding/json"
 	"log"
 	"reflect"
-	"testing"
 )
+
+func BytesReverse(s []byte) []byte {
+	r := s
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return r
+}
 
 func BytesDup(src []byte) []byte {
 	r := make([]byte, len(src))
@@ -68,11 +75,9 @@ func OpLessOrEqual(left, right interface{}) bool {
 	return false
 }
 
-func _TestAssign1(t *testing.T) {
+func _TestAssign1() bool {
 	var to C.uint32_t = 123
 	var from int = 567
 	OpAssign(&to, &from)
-	if to != C.uint32_t(from) {
-		t.Fail()
-	}
+	return to == C.uint32_t(from)
 }
