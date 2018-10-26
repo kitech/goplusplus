@@ -18,7 +18,11 @@ func Base62Encode(s string) string {
 }
 
 func Base62Decode(s string) (b []byte, err error) {
-	defer func() { err = fmt.Errorf("%v", recover()) }()
+	defer func() {
+		if errx := recover(); errx != nil {
+			err = fmt.Errorf("%v", recover())
+		}
+	}()
 	return b62enc.DecodeString(s)
 }
 func Base62DecStr(s string) (string, error) {
@@ -35,7 +39,11 @@ func Base64EncSafe(s string) string {
 	return rawb64enc.EncodeToString([]byte(s))
 }
 func Base64DecSafe(s string) (b []byte, err error) {
-	defer func() { err = fmt.Errorf("%v", recover()) }()
+	defer func() {
+		if errx := recover(); errx != nil {
+			err = fmt.Errorf("%v", recover())
+		}
+	}()
 	b, err = rawb64enc.DecodeString(s)
 	return
 }

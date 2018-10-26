@@ -3,6 +3,7 @@ package gopp
 import (
 	"log"
 	"math"
+	"reflect"
 )
 
 func AbsNum(x interface{}) interface{} {
@@ -61,4 +62,100 @@ func MinU32(nums []uint32) uint32 {
 		}
 	}
 	return ret
+}
+
+// support, slice of number
+func Max(arr interface{}) interface{} {
+	arrv := reflect.ValueOf(arr)
+	arrty := arrv.Type()
+	switch arrty.Kind() {
+	case reflect.Array, reflect.Slice:
+	default:
+		return nil
+	}
+
+	switch arrty.Elem().Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Float32, reflect.Float64:
+	case reflect.String:
+	default:
+		return nil
+	}
+
+	var retv reflect.Value
+	for i := 0; i < arrv.Len(); i++ {
+		itemv := arrv.Index(i)
+		if i == 0 {
+			retv = itemv
+		} else {
+			switch arrty.Elem().Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				if itemv.Int() > retv.Int() {
+					retv = itemv
+				}
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				if itemv.Uint() > retv.Uint() {
+					retv = itemv
+				}
+			case reflect.Float32, reflect.Float64:
+				if itemv.Float() > retv.Float() {
+					retv = itemv
+				}
+			case reflect.String:
+				if itemv.String() > retv.String() {
+					retv = itemv
+				}
+			}
+		}
+	}
+
+	return retv.Interface()
+}
+func Min(arr interface{}) interface{} {
+	arrv := reflect.ValueOf(arr)
+	arrty := arrv.Type()
+	switch arrty.Kind() {
+	case reflect.Array, reflect.Slice:
+	default:
+		return nil
+	}
+
+	switch arrty.Elem().Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Float32, reflect.Float64:
+	case reflect.String:
+	default:
+		return nil
+	}
+
+	var retv reflect.Value
+	for i := 0; i < arrv.Len(); i++ {
+		itemv := arrv.Index(i)
+		if i == 0 {
+			retv = itemv
+		} else {
+			switch arrty.Elem().Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				if itemv.Int() > retv.Int() {
+					retv = itemv
+				}
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				if itemv.Uint() > retv.Uint() {
+					retv = itemv
+				}
+			case reflect.Float32, reflect.Float64:
+				if itemv.Float() > retv.Float() {
+					retv = itemv
+				}
+			case reflect.String:
+				if itemv.String() > retv.String() {
+					retv = itemv
+				}
+			}
+		}
+	}
+
+	return retv.Interface()
 }

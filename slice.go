@@ -2,6 +2,7 @@ package gopp
 
 import (
 	"log"
+	"math"
 	"reflect"
 	"unsafe"
 )
@@ -57,4 +58,13 @@ func SliceTyConv(src []int16) []byte {
 	srchdr.Len = len(src_) * 2 // int(unsafe.Sizeof(int16(0))/unsafe.Sizeof(byte(0)))
 	srchdr.Cap = cap(src_) * 2 //int(unsafe.Sizeof(int16(0))/unsafe.Sizeof(byte(0)))
 	return *((*[]byte)(unsafe.Pointer(srchdr)))
+}
+
+/////
+// see funk.Chunk
+func ChunkN(arr interface{}, c int) interface{} {
+	arrv := reflect.ValueOf(arr)
+	n := int(math.Ceil(float64(arrv.Len()) / float64(c)))
+	_ = n
+	return nil
 }

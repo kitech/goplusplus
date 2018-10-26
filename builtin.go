@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"log"
 	"reflect"
+	"unsafe"
 )
 
 func BytesReverse(s []byte) []byte {
@@ -41,9 +42,10 @@ func DeepCopy(from interface{}, to interface{}) error {
 // https://github.com/mohae/deepcopy
 
 // if integer, number, must use var's addr, like , a := 5; &a
-// 一般用于数字类型的操作
+// 一般用于数字类型的操作，指针类型的强制转换
 // TODO 考虑类型的存储大小，防止丢失精度
-func OpAssign(tovalp, fromvaluep interface{}) {
+// 返回值为*tovalp
+func OpAssign(tovalp, fromvaluep interface{}) interface{} {
 	toval := reflect.ValueOf(tovalp)
 	log.Println(toval.CanAddr(), toval.Type().String())
 	toty := toval.Type()
@@ -53,9 +55,14 @@ func OpAssign(tovalp, fromvaluep interface{}) {
 		toval.Elem().Set(fromvalue.Elem())
 	} else if fromty.Elem().ConvertibleTo(toty.Elem()) {
 		toval.Elem().Set(fromvalue.Elem().Convert(toty.Elem()))
+	} else if fromty.Kind() == reflect.Ptr && toval.Kind() == reflect.Ptr {
+		// 强制指针转换 , (*FileStat)(unsafe.Pointer(*os.fileStat))
+		tmp := reflect.NewAt(toval.Type().Elem().Elem(), unsafe.Pointer(fromvalue.Pointer()))
+		toval.Elem().Set(tmp)
 	} else {
 		log.Panicln("Connot assign.", toty.String(), fromty.String())
 	}
+	return toval.Elem().Interface()
 }
 
 func OpEqual(left, right interface{}) bool {
@@ -80,4 +87,44 @@ func _TestAssign1() bool {
 	var from int = 567
 	OpAssign(&to, &from)
 	return to == C.uint32_t(from)
+}
+
+func Lenv(v interface{}) int {
+	switch rv := v.(type) {
+	case string:
+		return len(rv)
+	case byte:
+		return int(unsafe.Sizeof(rv))
+	case int8:
+		return int(unsafe.Sizeof(rv))
+	case int:
+		return int(unsafe.Sizeof(rv))
+	case uint:
+		return int(unsafe.Sizeof(rv))
+	case int32:
+		return int(unsafe.Sizeof(rv))
+	case uint32:
+		return int(unsafe.Sizeof(rv))
+	case int64:
+		return int(unsafe.Sizeof(rv))
+	case uint64:
+		return int(unsafe.Sizeof(rv))
+	case float32:
+		return int(unsafe.Sizeof(rv))
+	case float64:
+		return int(unsafe.Sizeof(rv))
+	default:
+		vv := reflect.ValueOf(v)
+		switch vv.Type().Kind() {
+		case reflect.Slice:
+			return vv.Len()
+		case reflect.Array:
+			return vv.Len()
+		case reflect.Map:
+			return vv.Len()
+		case reflect.Chan:
+			return vv.Len()
+		}
+	}
+	return 0
 }

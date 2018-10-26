@@ -2,6 +2,7 @@ package gopp
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func Dur2hum(d time.Duration) string {
 			r += fmt.Sprintf("%d%s", m, unitShorts[idx])
 		}
 		d -= time.Duration(m) * du
-		if idx >= 5 {
+		if idx >= 6 {
 			break
 		}
 	}
@@ -60,4 +61,21 @@ func CondWait(timeoutms int, f func() bool) {
 			break
 		}
 	}
+}
+
+func TimeUnixMS(t time.Time) int64 {
+	return t.Unix()*1000 + int64(t.Nanosecond()/1000000)
+}
+func TimeUnixMSStr(t time.Time) string { return fmt.Sprintf("%d", TimeUnixMS(t)) }
+func TimeUnixMSNow() int64 {
+	t := time.Now()
+	return t.Unix()*1000 + int64(t.Nanosecond()/1000000)
+}
+func TimeUnixMSStrNow() string { return fmt.Sprintf("%d", TimeUnixMSNow()) }
+func TimeFromUnixMS(tsms int64) time.Time {
+	return time.Time(time.Unix(tsms/1000, tsms%1000*1000000))
+}
+func TimeFromUnixMSStr(tsms string) (time.Time, error) {
+	ts, err := strconv.ParseInt(tsms, 10, 64)
+	return TimeFromUnixMS(ts), err
 }

@@ -1,6 +1,8 @@
 package gopp
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -59,4 +61,25 @@ func ParseAddr(address string) net.Addr {
 	ao.IP = ip
 	ao.Port = iport
 	return ao
+}
+
+type FmtWriter struct {
+	io.Writer
+}
+
+func NewFmtwriter(w io.Writer) *FmtWriter {
+	this := &FmtWriter{w}
+	return this
+}
+func (this *FmtWriter) Print(a ...interface{}) (n int, err error) {
+	n, err = fmt.Fprint(this.Writer, a...)
+	return
+}
+func (this *FmtWriter) Printf(format string, a ...interface{}) (n int, err error) {
+	n, err = fmt.Fprintf(this.Writer, format, a...)
+	return
+}
+func (this *FmtWriter) Println(a ...interface{}) (n int, err error) {
+	n, err = fmt.Fprintln(this.Writer, a...)
+	return
 }
