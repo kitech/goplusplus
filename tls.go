@@ -62,7 +62,6 @@ func TLSCertKeyFPMd5(cert tls.Certificate) string {
 	return Md5AsStr(x509Cert.Raw)
 }
 
-// TODO
 func SaveTLSCertKeyOneFile(cert tls.Certificate, fname string) error {
 	x509Cert, err := x509.ParseCertificate(cert.Certificate[0])
 	ErrPrint(err)
@@ -97,7 +96,20 @@ func SaveTLSCertKeyOneFile(cert tls.Certificate, fname string) error {
 	return ioutil.WriteFile(fname, mrgbuf, 0644)
 }
 func SaveTLSCertKeyTwoFile(cert tls.Certificate, certFile, keyFile string) error {
-	return nil
+	x509Cert, err := x509.ParseCertificate(cert.Certificate[0])
+	ErrPrint(err)
+
+	derBytes := x509Cert.Raw
+	priv := cert.PrivateKey
+
+	certbuf := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	keybuf := pem.EncodeToMemory(pemBlockForKey(priv))
+
+	err = ioutil.WriteFile(certFile, certbuf, 0644)
+	if err == nil {
+		err = ioutil.WriteFile(keyFile, keybuf, 0644)
+	}
+	return err
 }
 
 //
@@ -111,12 +123,39 @@ func NewTLSCertificate(hosts []string, days int, isCA bool, rsaBits int) (tls.Ce
 	return tls.X509KeyPair(certbuf, keybuf)
 }
 
+func NewX509CertToOneFile(hosts []string, days int, isCA bool, rsaBits int, pemFile string) error {
+	pembuf, err := NewX509CertOne(hosts, days, isCA, rsaBits)
+	ErrPrint(err)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(pemFile, pembuf, 0644)
+	return err
+}
+func NewX509CertToTwoFile(hosts []string, days int, isCA bool, rsaBits int, certFile, keyFile string) error {
+	certbuf, keybuf, err := NewX509Certificate(hosts, days, isCA, rsaBits)
+	ErrPrint(err)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(certFile, certbuf, 0644)
+	if err == nil {
+		err = ioutil.WriteFile(keyFile, keybuf, 0644)
+	}
+	return err
+}
 func NewX509CertOne(hosts []string, days int, isCA bool, rsaBits int) ([]byte, error) {
 	certbuf, keybuf, err := NewX509Certificate(hosts, days, isCA, rsaBits)
 	ErrPrint(err)
 	mrgbuf := append(keybuf, certbuf...)
 	return mrgbuf, err
 }
+
+/*
+hosts: default nil
+days: must > 0
+rsaBits: default 0
+*/
 func NewX509Certificate(hosts []string, days int, isCA bool, rsaBits int) ([]byte, []byte, error) {
 	host := strings.Join(hosts, ",")
 	validFor := time.Duration(days) * 24 * time.Hour
