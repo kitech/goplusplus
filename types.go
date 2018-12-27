@@ -110,6 +110,15 @@ var Float64Ty = reflect.TypeOf(vFloat64Ty)
 var BoolTy = reflect.TypeOf(vBoolTy)
 var StrTy = reflect.TypeOf(vStrTy)
 
+var RefKindTys = map[reflect.Kind]reflect.Type{
+	reflect.Int8: Int8Ty, reflect.Uint8: Uint8Ty,
+	reflect.Int: IntTy, reflect.Uint: UintTy,
+	reflect.Int32: Int32Ty, reflect.Uint32: Uint32Ty,
+	reflect.Int64: Int64Ty, reflect.Uint64: Uint64Ty,
+	reflect.Float32: Float32Ty, reflect.Float64: Float64Ty,
+	reflect.Bool: BoolTy, reflect.String: StrTy,
+}
+
 var Int8PtrTy = reflect.TypeOf(&vInt8Ty)
 var Uint8PtrTy = reflect.TypeOf(&vUint8Ty)
 var IntPtrTy = reflect.TypeOf(&vIntTy)

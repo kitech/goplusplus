@@ -44,6 +44,7 @@ func DeepCopy(from interface{}, to interface{}) error {
 // if integer, number, must use var's addr, like , a := 5; &a
 // 一般用于数字类型的操作，指针类型的强制转换
 // TODO 考虑类型的存储大小，防止丢失精度
+// ptr usage: var s *MyFileStat; OpAssign(&s, &os.FileStat{})
 // 返回值为*tovalp
 func OpAssign(tovalp, fromvaluep interface{}) interface{} {
 	toval := reflect.ValueOf(tovalp)

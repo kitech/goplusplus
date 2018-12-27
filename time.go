@@ -41,6 +41,7 @@ func Dur2hum(d time.Duration) string {
 
 	return r
 }
+func SinceHum(t time.Time) string { return Dur2hum(time.Since(t)) }
 
 // offset [0-14)
 func SetTimezone(offset int) (olocal *time.Location) {

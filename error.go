@@ -4,6 +4,7 @@ package gopp
 import (
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -94,9 +95,10 @@ func ErrPrint(err error, args ...interface{}) error {
 	return err
 }
 
-func ErrFatal(err error) {
+func ErrFatal(err error, args ...interface{}) {
 	if err != nil {
-		log.Output(2, fmt.Sprintf("%v", err))
+		log.Output(2, printq(err, args...))
+		os.Exit(-1)
 	}
 }
 

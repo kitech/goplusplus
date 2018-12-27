@@ -63,6 +63,11 @@ func Sha1File(filePath string) string {
 	return ShaxFile(filePath, sha1.New())
 }
 
+func Sha256AsStr(b []byte) string {
+	sum := sha256.Sum256(b)
+	return hex.EncodeToString(sum[:])
+}
+
 func Sha256File(filePath string) string {
 	return ShaxFile(filePath, sha256.New())
 }

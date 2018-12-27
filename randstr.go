@@ -2,6 +2,7 @@ package gopp
 
 import (
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -11,7 +12,7 @@ const LowerChars = "abcdefghijklmnopqrstuvwxyz"
 const UpperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const AlphaChars = LowerChars + UpperChars + DigitChars
 const DigitChars = "0123456789"
-const HexChars = UpperChars + DigitChars
+const HexChars = "ABCDEF" + DigitChars
 const SymbolChars = "~!@#$%^&*()_+{}|:\"';,./<>?_+"
 const PrintableChars = AlphaChars + DigitChars + SymbolChars
 
@@ -49,7 +50,8 @@ func RandomStringPrintable(strlen int) string {
 	return RandomStringAny(strlen, chars)
 }
 
-func RandStrHex(l int) string { return RandomStringAny(l, HexChars) }
+func RandStrHex(l int) string      { return strings.ToLower(RandomStringAny(l, HexChars)) }
+func RandStrHexUpper(l int) string { return RandomStringAny(l, HexChars) }
 
 // string + string vs []string join的速度
 func RandomStringUTF8(strlen int) string {
