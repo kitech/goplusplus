@@ -23,7 +23,21 @@ import (
 func LoadTLSCertKeyFromOneFile(certkeyfile string) (tls.Certificate, error) {
 	bcc, err := ioutil.ReadFile(certkeyfile)
 	ErrPrint(err)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
 
+	return LoadTLSCertKeyFromOneBuffer(bcc)
+}
+
+func LoadTLSCertKeyFromTwoFile(certFile, keyFile string) (tls.Certificate, error) {
+	// certFile, keyFile := filepath.Join(dir, "cert.pem"), filepath.Join(dir, "key.pem")
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	ErrPrint(err)
+	return cert, err
+}
+
+func LoadTLSCertKeyFromOneBuffer(bcc []byte) (tls.Certificate, error) {
 	// top: private key part
 	// bottom: public cert part
 	certparts := strings.Split(string(bcc), "-----BEGIN CERTIFICATE-----")
@@ -34,11 +48,14 @@ func LoadTLSCertKeyFromOneFile(certkeyfile string) (tls.Certificate, error) {
 	return certo, err
 }
 
-func LoadTLSCertKeyFromTwoFile(certFile, keyFile string) (tls.Certificate, error) {
-	// certFile, keyFile := filepath.Join(dir, "cert.pem"), filepath.Join(dir, "key.pem")
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+func LoadTLSCertKeyFromTwoBuffer(certbcc, keybcc []byte) (tls.Certificate, error) {
+	// top: private key part
+	// bottom: public cert part
+	certPEMBlock := certbcc
+	keyPEMBlock := keybcc
+	certo, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 	ErrPrint(err)
-	return cert, err
+	return certo, err
 }
 
 /*
@@ -325,3 +342,24 @@ func main_tls_generate_cert(host *string, validFrom *string, validFor *time.Dura
 
 // https://golang.org/src/crypto/tls/generate_cert.go
 // x509.CreateCertificate(rand io.Reader, template *x509.Certificate, parent *x509.Certificate, pub interface{}, priv interface{})
+
+// Setup a bare-bones TLS config for the server
+func GenerateTLSConfig() *tls.Config {
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		panic(err)
+	}
+	template := x509.Certificate{SerialNumber: big.NewInt(1)}
+	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	if err != nil {
+		panic(err)
+	}
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+
+	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		panic(err)
+	}
+	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}
+}

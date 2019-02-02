@@ -1,4 +1,4 @@
-package gopp
+package cgopp
 
 /*
 #include <stdint.h>

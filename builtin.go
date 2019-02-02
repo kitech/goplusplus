@@ -1,9 +1,5 @@
 package gopp
 
-/*
-#include <stdint.h>
-*/
-import "C"
 import (
 	"encoding/json"
 	"log"
@@ -81,13 +77,6 @@ func OpLessThan(left, right interface{}) bool {
 }
 func OpLessOrEqual(left, right interface{}) bool {
 	return false
-}
-
-func _TestAssign1() bool {
-	var to C.uint32_t = 123
-	var from int = 567
-	OpAssign(&to, &from)
-	return to == C.uint32_t(from)
 }
 
 func Lenv(v interface{}) int {

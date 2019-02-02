@@ -1,9 +1,5 @@
 package gopp
 
-/*
- */
-import "C"
-
 func ShmGet() {
 	// trap := syscall.SYS_SHMGET
 	// key := syscall.

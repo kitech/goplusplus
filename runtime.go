@@ -1,10 +1,5 @@
 package gopp
 
-/*
-#include <stdlib.h>
-*/
-import "C"
-
 import (
 	"io"
 	"log"
@@ -13,7 +8,6 @@ import (
 	"reflect"
 	"runtime"
 	"sync"
-	"unsafe"
 )
 
 func IsAndroid() bool { return runtime.GOOS == "android" }
@@ -34,8 +28,9 @@ func Deferx(objx interface{}) {
 		runtime.SetFinalizer(objx, func(objx interface{}) { obj.Unlock() })
 	case *sync.RWMutex:
 		runtime.SetFinalizer(objx, func(objx interface{}) { obj.Unlock() })
-	case *C.char:
-		runtime.SetFinalizer(objx, func(objx interface{}) { C.free(unsafe.Pointer(obj)) })
+		// move to cgopp
+	// case *C.char:
+	//	runtime.SetFinalizer(objx, func(objx interface{}) { C.free(unsafe.Pointer(obj)) })
 	case io.Closer:
 		runtime.SetFinalizer(objx, func(objx interface{}) { obj.Close() })
 		// TODO chan, context?

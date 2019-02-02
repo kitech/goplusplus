@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// TODO improve performance with https://github.com/kpbird/golang_random_string/blob/master/main.go
 var r *rand.Rand // Rand for this package.
 
 const LowerChars = "abcdefghijklmnopqrstuvwxyz"
