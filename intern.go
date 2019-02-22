@@ -2,7 +2,6 @@ package gopp
 
 import (
 	"os"
-	"syscall"
 	"time"
 )
 
@@ -14,5 +13,5 @@ type FileStat struct {
 	Size    int64
 	Mode    os.FileMode
 	ModTime time.Time
-	Sys     syscall.Stat_t
+	Sys     interface{} //    syscall.Stat_t
 }
