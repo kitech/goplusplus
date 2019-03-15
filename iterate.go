@@ -101,6 +101,17 @@ func IV2Strings(items []interface{}) []string {
 	}
 	return rets
 }
+func Strs2IV(items []string) []interface{} {
+	if items == nil {
+		return nil
+	}
+
+	rets := make([]interface{}, 0)
+	for idx := 0; idx < len(items); idx++ {
+		rets = append(rets, items[idx])
+	}
+	return rets
+}
 
 // enumerate类似功能
 // 第一种方式，采用数组,可能用内存比较多

@@ -91,7 +91,12 @@ func SaveTLSCertKeyOneFile(cert tls.Certificate, fname string) error {
 		log.Println("type", reflect.TypeOf(cert.PrivateKey))
 
 		pko := cert.PrivateKey.(*rsa.PrivateKey)
-		log.Println("pksz:", pko.Size(), pko.Validate())
+		pkov := reflect.ValueOf(pko)
+		szmthv := pkov.MethodByName("Size")
+		if !szmthv.IsNil() { // fix 1.11+ method ras.PrivateKey.Size()
+			log.Println("pksz:", szmthv.Call(nil), pko.Validate())
+			// log.Println("pksz:", pko.Size(), pko.Validate())
+		}
 	}
 
 	derBytes := x509Cert.Raw
@@ -293,6 +298,8 @@ func main_tls_generate_cert(host *string, validFrom *string, validFor *time.Dura
 			template.DNSNames = append(template.DNSNames, h)
 		}
 	}
+	template.Issuer = pkix.Name{Organization: []string{*host}, CommonName: *host}
+	template.Subject = pkix.Name{Organization: []string{*host}, CommonName: *host}
 
 	if *isCA {
 		template.IsCA = true

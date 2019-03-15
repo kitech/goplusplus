@@ -130,14 +130,16 @@ func TruePrint(ok bool, args ...interface{}) bool {
 }
 
 func NilPrint(v interface{}, args ...interface{}) interface{} {
-	if v == nil {
+	val := reflect.ValueOf(v)
+	if val.IsNil() {
 		log.Output(2, printq(v, args...))
 	}
 	return v
 }
 
 func NilFatal(v interface{}, args ...interface{}) {
-	if v == nil {
+	val := reflect.ValueOf(v)
+	if val.IsNil() {
 		log.Fatalln(printq(v, args...))
 	}
 }
