@@ -23,3 +23,29 @@ func IntAsFloat32(v uint64) (n float32) {
 	C.memcpy((unsafe.Pointer(&n)), (unsafe.Pointer(&v)), 4)
 	return
 }
+
+func C2goBool(ok C.int) bool {
+	if ok == 1 {
+		return true
+	}
+	return false
+}
+
+func Go2cBool(ok bool) C.int {
+	if ok {
+		return 1
+	}
+	return 0
+}
+
+//
+type go2cfnty *[0]byte
+
+// 参数怎么传递
+func Go2cfnp(fn unsafe.Pointer) *[0]byte {
+	return go2cfnty(fn)
+}
+func Go2cfn(fn interface{}) *[0]byte {
+	// assert(reflect.TypeOf(fn).Kind == reflect.Ptrx)
+	return Go2cfnp(fn.(unsafe.Pointer))
+}

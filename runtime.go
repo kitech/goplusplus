@@ -11,6 +11,7 @@ import (
 )
 
 func IsAndroid() bool { return runtime.GOOS == "android" }
+func IsWindows() bool { return runtime.GOOS == "windows" }
 
 // 需要关闭的对象的自动处理
 // *os.File, *http.Response

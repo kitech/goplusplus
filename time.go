@@ -8,6 +8,7 @@ import (
 
 // 中文常用格式
 func TimeToFmt1(t time.Time) string { return t.Format("2006-01-02 15:04:05") }
+func TimeToFmt1Now() string         { return time.Now().Format("2006-01-02 15:04:05") }
 
 // rounded float point part
 // origin 8h38m46.115296675s
@@ -80,3 +81,7 @@ func TimeFromUnixMSStr(tsms string) (time.Time, error) {
 	ts, err := strconv.ParseInt(tsms, 10, 64)
 	return TimeFromUnixMS(ts), err
 }
+
+func SleepSec(sec int) { time.Sleep(time.Duration(sec) * time.Second) }
+func SleepMs(msec int) { time.Sleep(time.Duration(msec) * time.Millisecond) }
+func SleepUs(usec int) { time.Sleep(time.Duration(usec) * time.Microsecond) }

@@ -20,7 +20,12 @@ func (this AtomicU32) CmpAndSwap(old uint32, new uint32) (swapped bool) {
 
 type AtomicBool uint32
 
-func (this AtomicBool) CmpAndSwap(old bool, new bool) (swapped bool) {
+func NewAtomicBool() *AtomicBool {
+	var this AtomicBool
+	return &this
+}
+
+func (this *AtomicBool) CmpAndSwap(old bool, new bool) (swapped bool) {
 	var oldiv, newiv uint32
 	if old {
 		oldiv = 1
@@ -29,18 +34,21 @@ func (this AtomicBool) CmpAndSwap(old bool, new bool) (swapped bool) {
 		newiv = 1
 	}
 
-	curv := atomic.LoadUint32((*uint32)(&this))
+	curv := atomic.LoadUint32((*uint32)(this))
 	abaver := curv >> 31
 	oldv := abaver<<31 | oldiv
 	newv := (abaver+1)<<31 | newiv
 
-	return atomic.CompareAndSwapUint32((*uint32)(&this), oldv, newv)
+	swapped = atomic.CompareAndSwapUint32((*uint32)(this), oldv, newv)
+	return
 }
 
-func (this AtomicBool) IsTrue() bool {
-	curv := atomic.LoadUint32((*uint32)(&this))
+func (this *AtomicBool) IsTrue() bool {
+	curv := atomic.LoadUint32((*uint32)(this))
 	return curv&1 == 1
 }
+
+func (this *AtomicBool) Value() uint32 { return atomic.LoadUint32((*uint32)(this)) }
 
 // https://www.jianshu.com/p/72d02353dc7e
 //

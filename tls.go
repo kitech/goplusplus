@@ -370,3 +370,11 @@ func GenerateTLSConfig() *tls.Config {
 	}
 	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}
 }
+
+func LoadTLSConfigFromTwoFile(certFile, keyFile string) (*tls.Config, error) {
+	cert, err := LoadTLSCertKeyFromTwoFile(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+	return &tls.Config{Certificates: []tls.Certificate{cert}}, nil
+}

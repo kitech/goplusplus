@@ -159,6 +159,8 @@ func NewRetryFnOnly(f func() error) *Retryer {
 	return this
 }
 
+// should block
+// unit base: 1*time.Millisecond, so if want 2s, unit=time.Duration(2000)
 func (this *Retryer) Do(unit time.Duration, ntimes ...int) error {
 	return this.do(this.mode == RETRY_FN_WITH_NO, unit, ntimes...)
 }
@@ -180,7 +182,8 @@ func (this *Retryer) do(withno bool, unit time.Duration, ntimes ...int) (err err
 			} else {
 				n, v := this.NextWait()
 				innern = n
-				time.Sleep(unit * time.Duration(v) / 100) // /100 for uniform unit
+				waitdur := unit * time.Duration(v) / 100
+				time.Sleep(waitdur) // /100 for uniform unit
 			}
 		}
 	}
