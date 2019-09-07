@@ -1,6 +1,7 @@
 package gopp
 
 import (
+	"encoding/json"
 	"io"
 	"strings"
 
@@ -86,4 +87,11 @@ func (j *Json) MustArray(args ...[]interface{}) []interface{} {
 
 func (j *Json) MustMap(args ...map[string]interface{}) map[string]interface{} {
 	return j.jo.MustMap(args...)
+}
+
+///
+func JsonDecStrMap(data []byte) (map[string]string, error) {
+	ret := map[string]string{}
+	err := json.Unmarshal(data, &ret)
+	return ret, err
 }

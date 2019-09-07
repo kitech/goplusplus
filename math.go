@@ -64,7 +64,11 @@ func MinU32(nums []uint32) uint32 {
 	return ret
 }
 
-// support, slice of number
+func Maxv(a0, a1 interface{}, elses ...interface{}) interface{} {
+	return Max(append(elses, a0, a1))
+}
+
+// support, slice of number/string
 func Max(arr interface{}) interface{} {
 	arrv := reflect.ValueOf(arr)
 	arrty := arrv.Type()
@@ -111,6 +115,9 @@ func Max(arr interface{}) interface{} {
 	}
 
 	return retv.Interface()
+}
+func Minv(a0, a1 interface{}, elses ...interface{}) interface{} {
+	return Min(append(elses, a0, a1))
 }
 func Min(arr interface{}) interface{} {
 	arrv := reflect.ValueOf(arr)

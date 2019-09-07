@@ -10,7 +10,7 @@ import (
 )
 
 // TODO 要是侯选可以惰性求值就好了，否则在只能一个求值的场景则会有问题
-// 简单的三元去处模拟函数
+// 简单的三元运算符模拟函数
 func IfElse(q bool, tv interface{}, fv interface{}) interface{} {
 	if q == true {
 		return tv

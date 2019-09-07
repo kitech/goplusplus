@@ -3,6 +3,7 @@ package gopp
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,17 +28,31 @@ func Dur2hum(d time.Duration) string {
 	// unitWords := []string{"year", "month", "day", "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"}
 	unitShorts := []string{"y", "M", "d", "h", "m", "s", "ms", "µs", "ns"}
 
+	sawsec := false
 	r := ""
 	for idx, du := range unitMeasures {
 		m := d.Nanoseconds() / du.Nanoseconds()
 		if m == 0 {
 		} else {
-			r += fmt.Sprintf("%d%s", m, unitShorts[idx])
+			// 5s100ms => 5.100s
+			unit := unitShorts[idx]
+			sawsec = IfElse(sawsec, sawsec, unit == "s").(bool)
+			var sfx = unit
+			switch unit {
+			case "s":
+				sfx = "."
+			case "ms":
+				sfx = IfElseStr(sawsec, "s", unit)
+			}
+			r += fmt.Sprintf("%d%s", m, sfx)
 		}
 		d -= time.Duration(m) * du
 		if idx >= 6 {
 			break
 		}
+	}
+	if strings.HasSuffix(r, ".") {
+		r = r[:len(r)-1] + "s"
 	}
 
 	return r

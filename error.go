@@ -114,6 +114,18 @@ func ErrPrefix(err error, s string) bool {
 func ErrSuffix(err error, s string) bool {
 	return err != nil && strings.HasSuffix(err.Error(), s)
 }
+func ErrHuman(err error) string {
+	if err == nil {
+		return "OK"
+	}
+	return err.Error()
+}
+func ErrHumanShort(err error) string {
+	if err == nil {
+		return "OK"
+	}
+	return "Failed"
+}
 
 func FalsePrint(ok bool, args ...interface{}) bool {
 	if !ok {
@@ -129,17 +141,16 @@ func TruePrint(ok bool, args ...interface{}) bool {
 	return ok
 }
 
+// BUG: panic: reflect: call of reflect.Value.IsNil on uint64 Value
 func NilPrint(v interface{}, args ...interface{}) interface{} {
-	val := reflect.ValueOf(v)
-	if v == nil || val.IsNil() {
+	if v == nil {
 		log.Output(2, printq(v, args...))
 	}
 	return v
 }
 
 func NilFatal(v interface{}, args ...interface{}) {
-	val := reflect.ValueOf(v)
-	if v == nil || val.IsNil() {
+	if v == nil {
 		log.Fatalln(printq(v, args...))
 	}
 }

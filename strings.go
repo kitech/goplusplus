@@ -84,10 +84,35 @@ func Splitrn(s string, n int) []string {
 			v = append(v, sub)
 			sub = ""
 			sublen = 0
-		} else {
-			sub += cs
-			sublen += len(cs)
 		}
+
+		sub += cs
+		sublen += len(cs)
+	}
+
+	if sublen > 0 {
+		v = append(v, sub)
+	}
+	return v
+}
+
+// rune support, utf8 3byte, but ui width is 2
+func Splitrnui(s string, n int) []string {
+	v := make([]string, 0)
+
+	sub := ""
+	sublen := 0
+	for _, c := range s {
+		cs := string(c)
+		uilen := IfElseInt(len(cs) == 1, 1, 2)
+		if sublen+uilen > n {
+			v = append(v, sub)
+			sub = ""
+			sublen = 0
+		}
+
+		sub += cs
+		sublen += uilen
 	}
 
 	if sublen > 0 {

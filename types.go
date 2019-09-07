@@ -8,6 +8,22 @@ import (
 	"unsafe"
 )
 
+// want these as buildin type name
+type i8 = int8
+type u8 = uint8
+type i16 = int16
+type u16 = uint16
+type i32 = int32
+type u32 = uint32
+type i64 = int64
+type u64 = uint64
+type f32 = float32
+type f64 = float64
+type f80 = [10]byte
+type i128 = [16]uint8
+type u128 = [16]byte
+type vptr = unsafe.Pointer // void pointer
+
 // TODO how add methods for Any type
 type IAny interface{}
 

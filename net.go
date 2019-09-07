@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // u: http://ip:port
@@ -31,8 +32,19 @@ type HttpClient struct {
 }
 
 func NewHttpClient() *HttpClient {
-
 	return &HttpClient{}
+}
+
+// timeoms == 0, use default value
+func NewHttpClient2(timeoms int) *http.Client {
+	cli := &http.Client{}
+	if timeoms != 0 {
+		cli.Timeout = time.Duration(timeoms) * time.Millisecond
+	}
+	tp := &http.Transport{}
+	cli.Transport = tp
+
+	return cli
 }
 
 // only ip:port, if ip part is a domain name, this will fail

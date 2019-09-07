@@ -3,6 +3,8 @@ package cgopp
 /*
 #include <string.h>
 #include <stdlib.h>
+#include <malloc.h>
+
 */
 import "C"
 
@@ -20,3 +22,6 @@ func CStrdup()  {}
 
 const CBoolTySz = gopp.Int32TySz
 const CppBoolTySz = gopp.Int8TySz
+
+// let freed memory really given back to OS
+func MallocTrim() int { return int(C.malloc_trim(0)) }

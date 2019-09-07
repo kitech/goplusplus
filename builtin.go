@@ -118,3 +118,5 @@ func Lenv(v interface{}) int {
 	}
 	return 0
 }
+
+func Unreachable() { panic("unreachable") }
