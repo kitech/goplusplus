@@ -36,3 +36,8 @@ func SafeWriteFile(filename string, data []byte, perm os.FileMode) error {
 
 	return os.Rename(tmpname, filename)
 }
+
+func ReadFile(filename string) (string, error) {
+	bcc, err := ioutil.ReadFile(filename)
+	return string(bcc), err
+}

@@ -57,6 +57,40 @@ func LoadTLSCertKeyFromTwoBuffer(certbcc, keybcc []byte) (tls.Certificate, error
 	ErrPrint(err)
 	return certo, err
 }
+func LoadTLSCertKeyFromKeyFile(keyfile string) (tls.Certificate, error) {
+	bcc, err := ioutil.ReadFile(keyfile)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	keyblk, _ := pem.Decode(bcc)
+	if keyblk == nil {
+		return tls.Certificate{}, os.ErrInvalid
+	}
+
+	privkeyo, err := x509.ParsePKCS8PrivateKey(keyblk.Bytes)
+	if err != nil {
+		privkeyo, err = x509.ParsePKCS1PrivateKey(keyblk.Bytes)
+		if err != nil {
+			return tls.Certificate{}, err
+		}
+	}
+	key := privkeyo.(*rsa.PrivateKey)
+
+	template := x509.Certificate{SerialNumber: big.NewInt(1)}
+	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	if err != nil {
+		panic(err)
+	}
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+
+	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		panic(err)
+	}
+	return tlsCert, err
+}
 
 /*
 openssl x509 -noout -fingerprint -sha256 -inform pem -in [certificate-file.crt]

@@ -52,11 +52,16 @@ func Base64DecSafeStr(s string) (r string, err error) {
 	return string(b), err
 }
 
+func Encb64Std(s string) string    { return base64.StdEncoding.EncodeToString([]byte(s)) }
 func Base64EncStd(s string) string { return base64.StdEncoding.EncodeToString([]byte(s)) }
 func Base64DecStd(s string) (b []byte, err error) {
 	return base64.StdEncoding.DecodeString(s)
 }
+func Decb64Std(s string) (b []byte, err error) {
+	return base64.StdEncoding.DecodeString(s)
+}
 
+func Decb64StdStr(s string) (r string, err error) { return Base64DecStdStr(s) }
 func Base64DecStdStr(s string) (r string, err error) {
 	b, err := base64.StdEncoding.DecodeString(s)
 	return string(b), err

@@ -3,6 +3,7 @@ package gopp
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -170,4 +171,12 @@ func FileSize(p string) int64 {
 		return 0
 	}
 	return fio.Size()
+}
+
+// if not exist, then create empty file
+func Touch(p string) error {
+	if !FileExist(p) {
+		return ioutil.WriteFile(p, nil, 0644)
+	}
+	return nil
 }

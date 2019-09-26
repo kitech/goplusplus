@@ -31,6 +31,7 @@ func NewFixedBackOff() *FixedBackOff {
 	this.name = "Fixed"
 	return this
 }
+func (this *FixedBackOff) Reset() {}
 func (this *FixedBackOff) Next() (int, time.Duration) {
 	this.ntimes++
 	return this.ntimes, 100 * time.Millisecond
@@ -47,6 +48,7 @@ func NewNaturalBackOff() *NaturalBackOff {
 	this.name = "Natural"
 	return this
 }
+func (this *NaturalBackOff) Reset() {}
 
 func (this *NaturalBackOff) Next() (int, time.Duration) {
 	this.ntimes++
@@ -66,11 +68,14 @@ type ExponentialBackOff struct {
 func NewExponentialBackOff() *ExponentialBackOff {
 	this := &ExponentialBackOff{}
 	this.name = "Exponential"
+	this.Reset()
+	return this
+}
+func (this *ExponentialBackOff) Reset() {
 	this.initialInterval = 100
 	this.maxInterval = this.initialInterval * 50
 	this.maxElapsedTime = this.initialInterval * 500
 	this.multiplier = 1.5
-	return this
 }
 
 func (this *ExponentialBackOff) Next() (int, time.Duration) {
@@ -93,8 +98,11 @@ type FibonacciBackOff struct {
 func NewFibonacciBackOff() *FibonacciBackOff {
 	this := &FibonacciBackOff{}
 	this.name = "Fibonacci"
-	this.no1, this.no2 = 0, 100
+	this.Reset()
 	return this
+}
+func (this *FibonacciBackOff) Reset() {
+	this.no1, this.no2 = 0, 100
 }
 
 func (this *FibonacciBackOff) Next() (int, time.Duration) {
@@ -104,7 +112,26 @@ func (this *FibonacciBackOff) Next() (int, time.Duration) {
 	return this.ntimes, time.Duration(no1+no2) * time.Millisecond // *100 for uniform unit
 }
 
-type RetryBackOff interface{ Next() (int, time.Duration) }
+type RetryBackOff interface {
+	Next() (int, time.Duration)
+	Reset()
+}
+
+func backoffByType(botype int) (bkoff RetryBackOff) {
+	switch botype {
+	case BO_EXPONENTIAL:
+		bkoff = NewExponentialBackOff()
+	case BO_FIBONACCI:
+		bkoff = NewFibonacciBackOff()
+	case BO_NATRURAL:
+		bkoff = NewNaturalBackOff()
+	case BO_FIXED:
+		fallthrough
+	default:
+		bkoff = NewFibonacciBackOff()
+	}
+	return
+}
 
 type Retryer struct {
 	mode   int
@@ -114,18 +141,7 @@ type Retryer struct {
 }
 
 func (this *Retryer) setBackOff(boty int) {
-	switch boty {
-	case BO_FIXED:
-		this.boff = NewFixedBackOff()
-	case BO_NATRURAL:
-		this.boff = NewNaturalBackOff()
-	case BO_EXPONENTIAL:
-		this.boff = NewExponentialBackOff()
-	case BO_FIBONACCI:
-		fallthrough
-	default:
-		this.boff = NewFibonacciBackOff()
-	}
+	this.boff = backoffByType(boty)
 }
 
 func NewRetry() *Retryer {
@@ -201,4 +217,38 @@ func DoTimesOnly(n int, f func()) {
 	for i := 0; i < n; i++ {
 		f()
 	}
+}
+
+/// only calc next time, not do run
+// avoid retry times
+type Retryer2 struct {
+	minwait  time.Duration
+	maxwait  time.Duration
+	stepwait time.Duration
+	steptype int
+	cycle    bool
+	reverse  bool // TODO
+	bkoff    RetryBackOff
+}
+
+func NewRetryer2(minwait, maxwait, stepwait time.Duration, steptype int, cycle bool) *Retryer2 {
+	r2 := &Retryer2{}
+	r2.minwait = minwait
+	r2.maxwait = maxwait
+	r2.stepwait = stepwait
+	r2.steptype = steptype
+	r2.cycle = cycle
+
+	r2.bkoff = backoffByType(steptype)
+
+	return r2
+}
+
+func (this *Retryer2) Next() time.Duration {
+	cnter, _ := this.bkoff.Next()
+	absdur := time.Duration(cnter)*this.stepwait + this.minwait
+	if this.cycle && absdur > this.maxwait {
+		this.bkoff.Reset()
+	}
+	return absdur
 }

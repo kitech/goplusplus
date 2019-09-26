@@ -68,3 +68,11 @@ func ChunkN(arr interface{}, c int) interface{} {
 	_ = n
 	return nil
 }
+
+// safe version
+func SliceGetStr(arr []string, idx int, dft string) string {
+	if len(arr) > idx {
+		return arr[idx]
+	}
+	return dft
+}

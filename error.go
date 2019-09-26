@@ -94,6 +94,15 @@ func ErrPrint(err error, args ...interface{}) error {
 	}
 	return err
 }
+func ErrPrintExcept(err error, except error, args ...interface{}) error {
+	if err == except {
+		return err
+	}
+	if err != nil {
+		log.Output(2, printq(err, args...))
+	}
+	return err
+}
 
 func ErrFatal(err error, args ...interface{}) {
 	if err != nil {

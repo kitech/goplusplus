@@ -221,7 +221,11 @@ func (this *String) Mid(from, length int) *String { return NewString(this.s[from
 type Str string
 
 func (this Str) Mid(from, length int) Str { return Str(this[from:length]) }
+func CutSuffix(s string, cutlen int) string {
+	return s[:len(s)-cutlen]
+}
 
+// why there is a newline suffix?
 func JsonEncode(v interface{}) (js string, err error) {
 	w := bytes.NewBuffer([]byte{})
 	enc := json.NewEncoder(w)

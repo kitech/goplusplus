@@ -1,6 +1,7 @@
 package gopp
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -42,6 +44,12 @@ func NewHttpClient2(timeoms int) *http.Client {
 		cli.Timeout = time.Duration(timeoms) * time.Millisecond
 	}
 	tp := &http.Transport{}
+	tp.DisableCompression = false
+
+	tlscfg := &tls.Config{}
+	tlscfg.InsecureSkipVerify = true
+	tp.TLSClientConfig = tlscfg
+
 	cli.Transport = tp
 
 	return cli
@@ -94,4 +102,36 @@ func (this *FmtWriter) Printf(format string, a ...interface{}) (n int, err error
 func (this *FmtWriter) Println(a ...interface{}) (n int, err error) {
 	n, err = fmt.Fprintln(this.Writer, a...)
 	return
+}
+
+func HTWFlush(w http.ResponseWriter) bool {
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+		return true
+	}
+	return false
+}
+
+func XferCopy(c1, c2 net.Conn, close bool) (int64, int64, error) {
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		cpn, err := io.Copy(c2, c1)
+		ErrPrint(err, cpn)
+		// which error?
+		c2.Close()
+		c1.Close()
+		wg.Done()
+	}()
+	go func() {
+		cpn, err := io.Copy(c1, c2)
+		ErrPrint(err, cpn)
+		c1.Close()
+		c2.Close()
+		wg.Done()
+	}()
+	wg.Wait()
+	c1.Close()
+	c2.Close()
+	return 0, 0, nil
 }
