@@ -94,3 +94,20 @@ func RandomStringAny(strlen int, chars string) string {
 	}
 	return result
 }
+
+func RandNumsNodup(min, max int, n int) (rets []int) {
+	nums := map[int]bool{}
+	diff := max - min
+	for {
+		num := rand.Intn(diff) + min
+		nums[num] = true
+		if len(nums) >= n {
+			break
+		}
+	}
+	for num, _ := range nums {
+		rets = append(rets, num)
+	}
+
+	return
+}

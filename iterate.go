@@ -5,8 +5,17 @@ import (
 )
 
 type Pair struct {
-	Key interface{}
-	Val interface{}
+	Key   interface{}
+	Val   interface{}
+	Extra interface{}
+}
+
+func NewPair(key, val interface{}, extra ...interface{}) *Pair {
+	p := &Pair{key, val, nil}
+	if len(extra) > 0 {
+		p.Extra = extra[0]
+	}
+	return p
 }
 
 // 支持可以迭代的类型：结构体，slice，数组，字符串，map
@@ -33,7 +42,7 @@ func Domap(ins interface{}, f func(interface{}) interface{}) (outs []interface{}
 		tmpv := reflect.ValueOf(ins)
 		for _, vk := range tmpv.MapKeys() {
 			out := f(tmpv.MapIndex(vk).Interface())
-			outs = append(outs, &Pair{vk.Interface(), out})
+			outs = append(outs, &Pair{vk.Interface(), out, nil})
 		}
 	} else {
 		insRanger := ins.([]interface{})

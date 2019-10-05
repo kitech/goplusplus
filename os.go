@@ -180,3 +180,8 @@ func Touch(p string) error {
 	}
 	return nil
 }
+
+func IsEnvSet(name string) bool {
+	val := strings.ToLower(os.Getenv(name))
+	return val == "1" || val == "on" || val == "true"
+}

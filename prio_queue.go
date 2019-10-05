@@ -6,9 +6,9 @@ import (
 	"sync"
 )
 
-// weight小，优先级高
+// weight大，优先级高
 type PQItem interface {
-	Key() interface{}
+	Key() []interface{}
 	Weight() int
 	// Less(that PQItem) bool
 }
@@ -17,8 +17,8 @@ type PQItem interface {
 type PrioQueue struct {
 	mu     sync.RWMutex
 	itemsv priovec
-	itemsm map[interface{}]*pqitemin
-	maxcnt int
+	itemsm map[interface{}]*pqitemin // key =>
+	maxcnt int                       // TODO 并未实现
 }
 
 func NewPrioQueue(maxcnt ...int) *PrioQueue {
@@ -39,30 +39,52 @@ func (pq *PrioQueue) Push(item PQItem) {
 	pq.mu.Lock()
 	defer pq.mu.Unlock()
 
-	olditem, ok := pq.itemsm[item.Key()]
-	if ok {
-		_ = olditem
-		// olditem.value = item
-		// heap.Fix(&pq.itemsv, olditem.index)
-	} else {
+	exist := false
+	keys := item.Key()
+	for _, key := range keys {
+		olditem, ok := pq.itemsm[key]
+		if ok {
+			_ = olditem
+			// olditem.value = item
+			// heap.Fix(&pq.itemsv, olditem.index)
+		}
+		exist = exist || ok
+	}
+	if !exist {
 		itemin := &pqitemin{value: item}
 		heap.Push(&pq.itemsv, itemin)
-		pq.itemsm[item.Key()] = itemin
+		for _, key := range keys {
+			pq.itemsm[key] = itemin
+		}
 	}
 }
 func (pq *PrioQueue) PushSet(item PQItem) {
 	pq.mu.Lock()
 	defer pq.mu.Unlock()
 
-	olditem, ok := pq.itemsm[item.Key()]
-	if ok {
-		_ = olditem
-		olditem.value = item
+	exist := false
+	var olditem *pqitemin
+	keys := item.Key()
+	for _, key := range keys {
+		olditem, ok := pq.itemsm[key]
+		if ok {
+			_ = olditem
+			// olditem.value = item
+			// heap.Fix(&pq.itemsv, olditem.index)
+		}
+		exist = exist || ok
+		if exist {
+			break
+		}
+	}
+	if exist {
 		heap.Fix(&pq.itemsv, olditem.index)
 	} else {
 		itemin := &pqitemin{value: item}
 		heap.Push(&pq.itemsv, itemin)
-		pq.itemsm[item.Key()] = itemin
+		for _, key := range keys {
+			pq.itemsm[key] = itemin
+		}
 	}
 }
 
@@ -72,7 +94,10 @@ func (pq *PrioQueue) Pop() PQItem {
 
 	itemx := heap.Pop(&pq.itemsv)
 	item := itemx.(*pqitemin)
-	delete(pq.itemsm, item.value.Key())
+	keys := item.value.Key()
+	for _, key := range keys {
+		delete(pq.itemsm, key)
+	}
 	return item.value
 }
 
@@ -80,7 +105,7 @@ func (pq *PrioQueue) Len() int {
 	pq.mu.RLock()
 	defer pq.mu.RUnlock()
 
-	Assert(len(pq.itemsv) == len(pq.itemsm), "Ooops, invalid inner state", len(pq.itemsv), len(pq.itemsm))
+	// Assert(len(pq.itemsv) == len(pq.itemsm), "Ooops, invalid inner state", len(pq.itemsv), len(pq.itemsm))
 	return len(pq.itemsv)
 }
 
@@ -91,6 +116,10 @@ func (pq *PrioQueue) Del(key interface{}) PQItem {
 	item, ok := pq.itemsm[key]
 	if ok {
 		heap.Remove(&pq.itemsv, item.index)
+		keys := item.value.Key()
+		for _, key := range keys {
+			delete(pq.itemsm, key)
+		}
 		return item.value
 	}
 	return nil
@@ -137,6 +166,10 @@ func (pq *PrioQueue) Head(n ...int) []PQItem {
 	if len(n) > 0 {
 		cnt = n[0]
 	}
+	if cnt <= 0 {
+		return nil
+	}
+
 	for i := 0; i < cnt && i < len(pq.itemsv); i++ {
 		itemin := pq.itemsv[i]
 		items = append(items, itemin.value)
@@ -153,12 +186,56 @@ func (pq *PrioQueue) Tail(n ...int) []PQItem {
 	if len(n) > 0 {
 		cnt = n[0]
 	}
+	if cnt <= 0 {
+		return nil
+	}
+
 	for i := 0; i < cnt && i < len(pq.itemsv); i++ {
 		idx := len(pq.itemsv) - i - 1
 		itemin := pq.itemsv[idx]
 		items = append(items, itemin.value)
 	}
 	return items
+}
+
+// readonly
+func (pq *PrioQueue) Rand1() PQItem {
+	items := pq.Randn(1)
+	if len(items) > 0 {
+		return items[0]
+	}
+	return nil
+}
+func (pq *PrioQueue) Randn(n ...int) []PQItem {
+	pq.mu.RLock()
+	defer pq.mu.RUnlock()
+	items := []PQItem{}
+	cnt := 1
+	if len(n) > 0 {
+		cnt = n[0]
+	}
+	if cnt <= 0 {
+		return nil
+	}
+
+	rdidxes := RandNumsNodup(0, len(pq.itemsv), cnt)
+	for _, idx := range rdidxes {
+		itemin := pq.itemsv[idx]
+		items = append(items, itemin.value)
+	}
+
+	return items
+}
+func (pq *PrioQueue) Range(iterfn func(item PQItem)) {
+	pq.mu.RLock()
+	items := make([]PQItem, len(pq.itemsv))
+	for idx, item := range pq.itemsv {
+		items[idx] = item.value
+	}
+	pq.mu.RUnlock()
+	for _, item := range items {
+		iterfn(item)
+	}
 }
 
 ///
@@ -174,7 +251,7 @@ func (pq priovec) Len() int { return len(pq) }
 
 func (pq priovec) Less(i, j int) bool {
 	// We want Pop to give us the highest, not lowest, priority so we use greater than here.
-	return pq[i].value.Weight() < pq[j].value.Weight()
+	return pq[i].value.Weight() > pq[j].value.Weight()
 }
 
 func (pq priovec) Swap(i, j int) {

@@ -40,11 +40,13 @@ func NewHttpClient() *HttpClient {
 // timeoms == 0, use default value
 func NewHttpClient2(timeoms int) *http.Client {
 	cli := &http.Client{}
-	if timeoms != 0 {
-		cli.Timeout = time.Duration(timeoms) * time.Millisecond
-	}
 	tp := &http.Transport{}
 	tp.DisableCompression = false
+	if timeoms > 0 {
+		todur := time.Duration(timeoms) * time.Millisecond
+		cli.Timeout = todur
+		tp.TLSHandshakeTimeout = todur
+	}
 
 	tlscfg := &tls.Config{}
 	tlscfg.InsecureSkipVerify = true

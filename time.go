@@ -8,8 +8,11 @@ import (
 )
 
 // 中文常用格式
-func TimeToFmt1(t time.Time) string { return t.Format("2006-01-02 15:04:05") }
-func TimeToFmt1Now() string         { return time.Now().Format("2006-01-02 15:04:05") }
+func TimeToFmt1(t time.Time) string { return t.Format(CleanDateFmt) }
+func TimeToFmt1Now() string         { return time.Now().Format(CleanDateFmt) }
+func TimeFromFmt1(s string) (time.Time, error) {
+	return time.Parse(CleanDateFmt, s)
+}
 
 // rounded float point part
 // origin 8h38m46.115296675s

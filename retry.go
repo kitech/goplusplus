@@ -2,6 +2,7 @@ package gopp
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -18,6 +19,7 @@ const (
 	BO_EXPONENTIAL
 	BO_NATRURAL
 	BO_FIXED
+	BO_RANDOM
 )
 
 // 1.0
@@ -36,6 +38,7 @@ func (this *FixedBackOff) Next() (int, time.Duration) {
 	this.ntimes++
 	return this.ntimes, 100 * time.Millisecond
 }
+func (this *FixedBackOff) Count() int { return this.ntimes }
 
 // 1.1
 type NaturalBackOff struct {
@@ -54,6 +57,7 @@ func (this *NaturalBackOff) Next() (int, time.Duration) {
 	this.ntimes++
 	return this.ntimes, time.Duration(this.ntimes*100) * time.Millisecond
 }
+func (this *NaturalBackOff) Count() int { return this.ntimes }
 
 // 1.5
 type ExponentialBackOff struct {
@@ -85,6 +89,7 @@ func (this *ExponentialBackOff) Next() (int, time.Duration) {
 	this.ntimes++
 	return n, time.Duration(v) * time.Millisecond
 }
+func (this *ExponentialBackOff) Count() int { return this.ntimes }
 
 // backoff too quick
 // 1.9
@@ -111,10 +116,36 @@ func (this *FibonacciBackOff) Next() (int, time.Duration) {
 	this.ntimes += 1
 	return this.ntimes, time.Duration(no1+no2) * time.Millisecond // *100 for uniform unit
 }
+func (this *FibonacciBackOff) Count() int { return this.ntimes }
+
+type RandomBackOff struct {
+	mindur time.Duration
+	maxdur time.Duration
+	ntimes int
+}
+
+func NewRandomBackOff(mindur, maxdur time.Duration) *RandomBackOff {
+	this := &RandomBackOff{}
+	this.Reset()
+	this.mindur = mindur
+	this.maxdur = maxdur
+	return this
+}
+func (this *RandomBackOff) Reset() {
+	// this.mindur = time.Millisecond
+	// this.maxdur = 30 * time.Second
+}
+func (this *RandomBackOff) Next() (int, time.Duration) {
+	this.ntimes += 1
+	nxtdur := time.Duration(rand.Int63n(int64(this.maxdur-this.mindur))) + this.mindur
+	return this.ntimes, nxtdur
+}
+func (this *RandomBackOff) Count() int { return this.ntimes }
 
 type RetryBackOff interface {
 	Next() (int, time.Duration)
 	Reset()
+	Count() int
 }
 
 func backoffByType(botype int) (bkoff RetryBackOff) {
@@ -239,16 +270,28 @@ func NewRetryer2(minwait, maxwait, stepwait time.Duration, steptype int, cycle b
 	r2.steptype = steptype
 	r2.cycle = cycle
 
-	r2.bkoff = backoffByType(steptype)
+	if steptype == BO_RANDOM {
+		r2.bkoff = NewRandomBackOff(minwait, maxwait)
+	} else {
+		r2.bkoff = backoffByType(steptype)
+	}
 
 	return r2
 }
 
 func (this *Retryer2) Next() time.Duration {
+	if this.steptype == BO_RANDOM {
+		_, dur := this.bkoff.Next()
+		return dur
+	}
+
 	cnter, _ := this.bkoff.Next()
-	absdur := time.Duration(cnter)*this.stepwait + this.minwait
+	absdur := time.Duration(cnter-1)*this.stepwait + this.minwait
 	if this.cycle && absdur > this.maxwait {
 		this.bkoff.Reset()
 	}
 	return absdur
 }
+
+func (this *Retryer2) SleepNext()    { time.Sleep(this.Next()) }
+func (this *Retryer2) TryCount() int { return this.bkoff.Count() }
