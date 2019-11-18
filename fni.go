@@ -13,3 +13,9 @@ func Progn(args ...interface{}) (rets [][]interface{}) {
 func Retn(args ...interface{}) []interface{} { return args }
 
 // 对于没有返回值的函数，不能作为函数参数传递，所以无法用Progn函数调用。
+
+type Retval struct {
+	Ret   interface{}
+	Err   error
+	Extra interface{}
+}

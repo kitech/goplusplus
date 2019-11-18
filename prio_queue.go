@@ -57,18 +57,20 @@ func (pq *PrioQueue) Push(item PQItem) {
 			pq.itemsm[key] = itemin
 		}
 	}
+	pq.keepcount(item)
 }
 func (pq *PrioQueue) PushSet(item PQItem) {
 	pq.mu.Lock()
 	defer pq.mu.Unlock()
 
 	exist := false
-	var olditem *pqitemin
+	var olditem1 *pqitemin
 	keys := item.Key()
 	for _, key := range keys {
 		olditem, ok := pq.itemsm[key]
 		if ok {
 			_ = olditem
+			olditem1 = olditem
 			// olditem.value = item
 			// heap.Fix(&pq.itemsv, olditem.index)
 		}
@@ -78,7 +80,8 @@ func (pq *PrioQueue) PushSet(item PQItem) {
 		}
 	}
 	if exist {
-		heap.Fix(&pq.itemsv, olditem.index)
+		olditem1.value = item
+		heap.Fix(&pq.itemsv, olditem1.index)
 	} else {
 		itemin := &pqitemin{value: item}
 		heap.Push(&pq.itemsv, itemin)
@@ -86,12 +89,42 @@ func (pq *PrioQueue) PushSet(item PQItem) {
 			pq.itemsm[key] = itemin
 		}
 	}
+	pq.keepcount(item)
+}
+func (pq *PrioQueue) keepcount(item PQItem) {
+	// lock by Push/PushSet
+	if pq.maxcnt <= 0 {
+		return
+	}
+	curlen := len(pq.itemsv)
+	if curlen <= pq.maxcnt {
+		return
+	}
+	var items []interface{}
+	for i := 0; i < pq.maxcnt; i++ {
+		items = append(items, heap.Pop(&pq.itemsv))
+	}
+	for pq.itemsv.Len() > 0 {
+		itemx := heap.Pop(&pq.itemsv)
+		item := itemx.(*pqitemin)
+		for _, key := range item.value.Key() {
+			delete(pq.itemsm, key)
+		}
+		// log.Println("deled", item.value.Key(), item.value.Weight())
+	}
+
+	for _, item := range items {
+		heap.Push(&pq.itemsv, item)
+	}
+	// log.Println("added", item.Key(), item.Weight())
 }
 
 func (pq *PrioQueue) Pop() PQItem {
 	pq.mu.Lock()
 	defer pq.mu.Unlock()
-
+	if len(pq.itemsv) == 0 {
+		return nil
+	}
 	itemx := heap.Pop(&pq.itemsv)
 	item := itemx.(*pqitemin)
 	keys := item.value.Key()
@@ -107,6 +140,13 @@ func (pq *PrioQueue) Len() int {
 
 	// Assert(len(pq.itemsv) == len(pq.itemsm), "Ooops, invalid inner state", len(pq.itemsv), len(pq.itemsm))
 	return len(pq.itemsv)
+}
+func (pq *PrioQueue) Cap() int {
+	pq.mu.RLock()
+	defer pq.mu.RUnlock()
+
+	// Assert(len(pq.itemsv) == len(pq.itemsm), "Ooops, invalid inner state", len(pq.itemsv), len(pq.itemsm))
+	return pq.maxcnt
 }
 
 func (pq *PrioQueue) Del(key interface{}) PQItem {
@@ -130,8 +170,11 @@ func (pq *PrioQueue) GetKey(key interface{}) PQItem {
 	pq.mu.RLock()
 	defer pq.mu.RUnlock()
 
-	item, _ := pq.itemsm[key]
-	return item.value
+	item, ok := pq.itemsm[key]
+	if ok {
+		return item.value
+	}
+	return nil
 }
 
 // readonly
@@ -218,6 +261,9 @@ func (pq *PrioQueue) Randn(n ...int) []PQItem {
 		return nil
 	}
 
+	if len(pq.itemsv) == 0 {
+		return nil
+	}
 	rdidxes := RandNumsNodup(0, len(pq.itemsv), cnt)
 	for _, idx := range rdidxes {
 		itemin := pq.itemsv[idx]
@@ -265,6 +311,7 @@ func (pq *priovec) Push(x interface{}) {
 	item := x.(*pqitemin)
 	item.index = n
 	*pq = append(*pq, item)
+	heap.Fix(pq, n)
 }
 
 func (pq *priovec) Pop() interface{} {

@@ -16,6 +16,20 @@ func PathExist(p string) bool {
 	}
 	return true
 }
+func IsDir(p string) bool {
+	fio, err := os.Stat(p)
+	if err != nil {
+		return false
+	}
+	return fio.IsDir()
+}
+func IsRegular(p string) bool {
+	fio, err := os.Stat(p)
+	if err != nil {
+		return false
+	}
+	return fio.Mode().IsRegular()
+}
 
 // RunCmdOut runs a comand and returns the commands output, or an error
 func RunCmdOut(name string, arg ...string) (string, error) {

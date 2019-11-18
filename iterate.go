@@ -1,6 +1,7 @@
 package gopp
 
 import (
+	"log"
 	"reflect"
 )
 
@@ -110,6 +111,26 @@ func IV2Strings(items []interface{}) []string {
 	}
 	return rets
 }
+
+func IV2Ints(items []interface{}) []int {
+	if items == nil {
+		return nil
+	}
+
+	rets := make([]int, 0)
+	for idx := 0; idx < len(items); idx++ {
+		switch rv := items[idx].(type) {
+		case int:
+			rets = append(rets, rv)
+		case float64: // JSON
+			rets = append(rets, int(rv))
+		default:
+			log.Panicln(reflect.TypeOf(items[idx]))
+		}
+	}
+	return rets
+}
+
 func Strs2IV(items []string) []interface{} {
 	if items == nil {
 		return nil

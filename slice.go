@@ -76,3 +76,41 @@ func SliceGetStr(arr []string, idx int, dft string) string {
 	}
 	return dft
 }
+
+func IntsSame(arr []int) bool {
+	if len(arr) <= 1 {
+		return false
+	}
+	same := true
+	for i := 0; i < len(arr)-1; i++ {
+		same = same && arr[i] == arr[i+1]
+	}
+	return same
+}
+func StrsSame(arr []string) bool {
+	if len(arr) <= 1 {
+		return false
+	}
+	same := true
+	for i := 0; i < len(arr)-1; i++ {
+		same = same && arr[i] == arr[i+1]
+	}
+	return same
+}
+
+// 等差，且差不等于0
+func IntsDiffeq(arr []int) bool {
+	if len(arr) <= 1 {
+		return false
+	}
+	same := true
+	diff := arr[1] - arr[0]
+	if diff == 0 {
+		return false
+	}
+	for i := 0; i < len(arr)-1; i++ {
+		diff2 := arr[i+1] - arr[i]
+		same = same && diff2 == diff
+	}
+	return same
+}

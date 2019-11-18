@@ -23,6 +23,8 @@ func IntAsFloat32(v uint64) (n float32) {
 	C.memcpy((unsafe.Pointer(&n)), (unsafe.Pointer(&v)), 4)
 	return
 }
+func U64ToPtr(v uint64) unsafe.Pointer    { return unsafe.Pointer(uintptr(v)) }
+func U64OfPtr(vptr unsafe.Pointer) uint64 { return uint64(uintptr(vptr)) }
 
 func C2goBool(ok C.int) bool {
 	if ok == 1 {

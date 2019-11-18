@@ -138,14 +138,14 @@ func ErrHumanShort(err error) string {
 
 func FalsePrint(ok bool, args ...interface{}) bool {
 	if !ok {
-		log.Output(2, printq(ok, args...))
+		log.Output(2, printq("", args...))
 	}
 	return ok
 }
 
 func TruePrint(ok bool, args ...interface{}) bool {
 	if ok {
-		log.Output(2, printq(ok, args...))
+		log.Output(2, printq("", args...))
 	}
 	return ok
 }
@@ -153,20 +153,20 @@ func TruePrint(ok bool, args ...interface{}) bool {
 // BUG: panic: reflect: call of reflect.Value.IsNil on uint64 Value
 func NilPrint(v interface{}, args ...interface{}) interface{} {
 	if v == nil {
-		log.Output(2, printq(v, args...))
+		log.Output(2, printq("", args...))
 	}
 	return v
 }
 
 func NilFatal(v interface{}, args ...interface{}) {
 	if v == nil {
-		log.Fatalln(printq(v, args...))
+		log.Fatalln(printq("", args...))
 	}
 }
 
 func ZeroPrint(v interface{}, args ...interface{}) interface{} {
 	if reflect.Zero(reflect.TypeOf(v)).Interface() == v {
-		log.Output(2, printq(v, args))
+		log.Output(2, printq("", args))
 	}
 	return v
 }

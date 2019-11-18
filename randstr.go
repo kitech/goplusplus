@@ -98,6 +98,9 @@ func RandomStringAny(strlen int, chars string) string {
 func RandNumsNodup(min, max int, n int) (rets []int) {
 	nums := map[int]bool{}
 	diff := max - min
+	if diff == 0 {
+		return
+	}
 	for {
 		num := rand.Intn(diff) + min
 		nums[num] = true

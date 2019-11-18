@@ -45,53 +45,46 @@ func CmdRun(cmdo *exec.Cmd) error {
 // cmdo.Start()
 // cmdo.Wait()
 func DumpCmdout(cmdo *exec.Cmd, prefix string, incout bool, incerr bool) (outch, errch chan string) {
-	outch = make(chan string)
-	errch = make(chan string)
+	outch = make(chan string, 1)
+	errch = make(chan string, 1)
 	cmdoutfp, err := cmdo.StdoutPipe()
 	ErrPrint(err)
-	go func() {
-		r := bufio.NewReader(cmdoutfp)
-		for {
-			lineb, _, err := r.ReadLine()
-			if err == io.EOF {
-				break
-			}
-			ErrPrint(err)
-			if err != nil {
-				break
-			}
-			line := string(lineb)
-			if incout {
-				fmt.Println(prefix, line)
-			}
-			select {
-			case outch <- line:
-			}
-		}
-	}()
+	if err == nil {
+		go cmdiocpline(cmdoutfp, outch, prefix, incout)
+	}
+
 	cmderrfp, err := cmdo.StderrPipe()
 	ErrPrint(err)
-	go func() {
-		r := bufio.NewReader(cmderrfp)
-		for {
-			lineb, _, err := r.ReadLine()
-			if err == io.EOF {
-				break
-			}
-			ErrPrint(err)
-			if err != nil {
-				break
-			}
-			line := string(lineb)
-			if incerr {
-				fmt.Println("E", prefix, line)
-			}
-			select {
-			case errch <- line:
-			}
-		}
-	}()
+	if err == nil {
+		go cmdiocpline(cmderrfp, errch, prefix, incerr)
+	}
 	return
+}
+
+func cmdiocpline(cmdiofp io.ReadCloser, ioch chan string, prefix string, incstdio bool) {
+	r := bufio.NewReader(cmdiofp)
+	defer cmdiofp.Close()
+	stop := false
+	for !stop {
+		lineb, _, err := r.ReadLine()
+		if err == io.EOF {
+			break
+		}
+		ErrPrint(err)
+		if err != nil {
+			break
+		}
+		line := string(lineb)
+		if incstdio {
+			fmt.Println(prefix, line)
+		}
+		select {
+		case ioch <- line:
+		default:
+			stop = true
+			break
+		}
+	}
 }
 
 // 一般命令行都是按字符串的，按行的，所以返回值就特化一点吧
