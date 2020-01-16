@@ -62,6 +62,29 @@ func NewHttpClient2(timeoms int) *http.Client {
 
 	return cli
 }
+func NewHttpClient3(timeoms int, idlecnt int, keepalive bool) *http.Client {
+	cli := &http.Client{}
+	// tp1 := (http.DefaultTransport.(*http.Transport))
+	// tp := tp1.Clone() // go1.13
+	tp := &http.Transport{}
+	tp.DisableCompression = false
+	if timeoms > 0 {
+		todur := time.Duration(timeoms) * time.Millisecond
+		cli.Timeout = todur
+		tp.TLSHandshakeTimeout = todur
+	}
+
+	tlscfg := &tls.Config{}
+	tlscfg.InsecureSkipVerify = true
+	tp.TLSClientConfig = tlscfg
+	tp.DisableKeepAlives = !keepalive
+	tp.MaxIdleConns = IfElseInt(idlecnt == 0, http.DefaultMaxIdleConnsPerHost, idlecnt)
+
+	cli.Transport = tp
+
+	return cli
+}
+
 func CloseHttpIdles() {
 	tpx := http.DefaultClient.Transport
 	if tpx == nil {
@@ -134,7 +157,8 @@ func XferCopy(c1, c2 net.Conn, close bool) (int64, int64, error) {
 	donec21 := make(chan bool, 1)
 	go func() {
 		cpn, err := io.Copy(c2, c1)
-		if ErrHave(err, "use of closed network connection") {
+		if ErrHave(err, "use of closed network connection") ||
+			ErrHave(err, "read/write on closed pipe") {
 		} else {
 			ErrPrint(err, cpn)
 		}

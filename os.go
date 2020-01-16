@@ -199,3 +199,8 @@ func IsEnvSet(name string) bool {
 	val := strings.ToLower(os.Getenv(name))
 	return val == "1" || val == "on" || val == "true"
 }
+
+func Gopaths() []string {
+	gopath := os.Getenv("GOPATH")
+	return strings.Split(gopath, ":")
+}
