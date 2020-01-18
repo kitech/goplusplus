@@ -33,10 +33,47 @@ func (sk *Socket) Connect(address string, port int) {
 	var rv = C.connect(sk.fd, sa, unsafe.Sizeof(C.struct_sockaddr_in))
 	if rv != 0 {
 	}
-	eno := *C.__errno_location()
-	println(rv, *C.__errno_location())
-	emsg := C.strerror(eno)
-	println(emsg)
 	println(sk.fd, sa.sin_port)
 
+}
+
+func (sk *Socket) Close() error {
+	C.close(sk.fd)
+	return nil
+}
+
+func (sk *Socket) Bind(port int) error {
+	var sa = &C.struct_sockaddr_in{}
+	sa.sin_family = C.AF_INET
+	sa.sin_port = C.htons(port)
+	rv := C.bind(sk.fd, sa, unsafe.Sizeof(C.struct_sockaddr_in))
+	if rv != 0 {
+	}
+	return nil
+}
+
+func (sk *Socket) Listen() error {
+	rv := C.listen(sk.fd, 128)
+	if rv != 0 {
+		println("listen error", rv)
+	}
+	return nil
+}
+
+func (sk *Socket) Accept() error {
+	var sa = &C.struct_sockaddr_in{}
+	sa.sin_family = C.AF_INET
+	rv := C.accept(sk.fd, sa, unsafe.Sizeof(C.struct_sockaddr_in))
+	if rv < 0 {
+		println("accept error", rv)
+	}
+	return nil
+}
+
+func (sk *Socket) Read() error {
+	return nil
+}
+
+func (sk *Socket) Write() error {
+	return nil
 }
