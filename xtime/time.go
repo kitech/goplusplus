@@ -41,8 +41,8 @@ func Now() *Time {
 	rv := C.gettimeofday(tv, 0)
 	uts := C.time(0)
 	t := &Time{}
-	// t.unix = (tv.tv_sec * US) + (tv.tv_usec)
-	// t.unix = uts * US
+	// t.unix = tv.tv_sec*US + tv.tv_usec // TODO
+	t.unix = uts * US
 	t.zone = zone()
 	return t
 }

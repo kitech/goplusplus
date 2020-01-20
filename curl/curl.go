@@ -6,19 +6,19 @@ package curl
 #include <cxrtbase.h>
 */
 import "C"
-import "unsafe"
 
 type Curl struct {
-	cobj unsafe.Pointer
+	cobj voidptr // unsafe.Pointer
 }
 
-var inited = 0
+var inited = false
 
 func init() {
 	if inited {
 		return
 	}
-	inited = 1
+	inited = true
+
 	C.curl_global_init(0)
 }
 func Version() string {
@@ -35,13 +35,13 @@ func New() *Curl {
 	return cuh
 }
 
-func curlobj_finalizer(ptr unsafe.Pointer) {
+func curlobj_finalizer(ptr voidptr /*unsafe.Pointer*/) {
 	cuh := (*Curl)(ptr)
 	cuh.cleanup()
 }
 
 type Slist struct {
-	Cobj unsafe.Pointer
+	Cobj voidptr // unsafe.Pointer
 }
 
 func NewSlist() *Slist {
@@ -50,7 +50,7 @@ func NewSlist() *Slist {
 	return lst
 }
 
-func slist_finalizer(ptr unsafe.Pointer) {
+func slist_finalizer(ptr voidptr /*unsafe.Pointer*/) {
 	lst := (*Slist)(ptr)
 	if lst == nil {
 		return
@@ -73,11 +73,11 @@ func (ch *Curl) perform() {
 	C.curl_easy_perform(ch.cobj)
 }
 
-func (ch *Curl) setopt(opt int, val unsafe.Pointer) int {
+func (ch *Curl) setopt(opt int, val voidptr /*unsafe.Pointer*/) int {
 	rv := C.curl_easy_setopt(ch.cobj, opt, 2)
 	return rv
 }
-func (ch *Curl) Getinfo(opt int, val unsafe.Pointer) int {
+func (ch *Curl) Getinfo(opt int, val voidptr /*unsafe.Pointer*/) int {
 	rv := C.curl_easy_getinfo(ch.cobj, opt, val)
 	return rv
 }
@@ -103,6 +103,10 @@ func (ch *Curl) Propfind() {
 
 const (
 	OK = C.CURLE_OK
+)
+
+var (
+	OK2 = C.CURLE_OK
 )
 
 func init() {

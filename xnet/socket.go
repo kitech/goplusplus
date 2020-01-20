@@ -8,7 +8,11 @@ package xnet
 #include <arpa/inet.h>
 */
 import "C"
-import "unsafe"
+import (
+	"gopp/xstrconv"
+	"gopp/xstrings"
+	"unsafe"
+)
 
 type Socket struct {
 	fd   int
@@ -25,7 +29,7 @@ func NewSocket() *Socket {
 	return sock
 }
 
-func (sk *Socket) Connect(address string, port int) {
+func (sk *Socket) Connect(address string, port int) error {
 	var sa = &C.struct_sockaddr_in{}
 	sa.sin_family = C.AF_INET
 	sa.sin_port = C.htons(port)
@@ -34,7 +38,7 @@ func (sk *Socket) Connect(address string, port int) {
 	if rv != 0 {
 	}
 	println(sk.fd, sa.sin_port)
-
+	return nil
 }
 
 func (sk *Socket) Close() error {
@@ -70,10 +74,21 @@ func (sk *Socket) Accept() error {
 	return nil
 }
 
-func (sk *Socket) Read() error {
+func (sk *Socket) Read(b []byte) error {
 	return nil
 }
 
-func (sk *Socket) Write() error {
+func (sk *Socket) Write(b []byte) error {
 	return nil
+}
+
+func Dial(address string) (*Socket, error) {
+	arr := xstrings.Split(address, ":")
+	port := xstrconv.Atoi(arr[1])
+	sk := NewSocket()
+	err := sk.Connect(arr[0], port)
+	if err != nil {
+		return nil, err
+	}
+	return sk, nil
 }

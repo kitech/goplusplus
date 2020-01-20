@@ -6,11 +6,24 @@ package xlog
 */
 import "C"
 
-func Println() {
+const skip_depth = 3
+
+func dummy(args ...interface{}) {
 
 }
 
-func Printf() {
+func Println(args ...interface{}) {
+	for i := 0; i < len(args); i++ {
+
+	}
+	// dummy(args...) // not work
+}
+
+func Fatalln(args ...interface{}) {
+
+}
+
+func Printf(format string, args ...interface{}) {
 
 }
 
