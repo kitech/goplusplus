@@ -44,6 +44,7 @@ func Index(s string, sep string) int {
 		if i+seplen > slen {
 			break
 		}
+		//s1 := s[i : i+seplen]
 		if s[i:i+seplen] == sep {
 			res = i
 			break
@@ -87,6 +88,7 @@ func Replace(s string, old string, new string, n int) string {
 	pos := 0
 	ns := ""
 	for cnt := 0; pos < len(s) && (n <= 0 || (n > 0 && cnt < n)); cnt++ {
+		s1 := s[pos:]
 		idx := Index(s[pos:], old)
 		if idx < 0 {
 			break

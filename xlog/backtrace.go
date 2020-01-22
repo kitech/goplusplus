@@ -25,6 +25,7 @@ type Frame struct {
 	Offhex   string
 	File     string
 	Line     string
+	Lineno   int
 
 	Sframe string
 }
@@ -83,8 +84,22 @@ func lines2frame2(lines []string) []*Frame {
 	}
 	return res
 }
+
+// backtrace without file/line
 func Backtrace() []*Frame {
 	lines := BacktraceLines()
 	frms := lines2frame2(lines)
+	return frms
+}
+
+// backtrace with file/line
+func Callers() []*Frame {
+	frms := Backtrace()
+	for idx := 0; idx < len(frms); idx++ {
+		frm := frms[idx]
+		file, lineno := addr2line1(frm.Funcaddr)
+		frm.File = file
+		frm.Lineno = lineno
+	}
 	return frms
 }
