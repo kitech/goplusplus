@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -202,5 +203,13 @@ func IsEnvSet(name string) bool {
 
 func Gopaths() []string {
 	gopath := os.Getenv("GOPATH")
-	return strings.Split(gopath, ":")
+	paths := strings.Split(gopath, ":")
+	goroot := os.Getenv("GOROOT")
+	if goroot == "" {
+		goroot = runtime.GOROOT()
+	}
+	if goroot != "" {
+		paths = append(paths, goroot)
+	}
+	return paths
 }

@@ -1,3 +1,0 @@
-package xdummy
-
-func Keep() {}
